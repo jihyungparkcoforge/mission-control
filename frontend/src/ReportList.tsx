@@ -1,7 +1,7 @@
 import { Card } from "@astryxdesign/core/Card";
 import { EmptyState } from "@astryxdesign/core/EmptyState";
 import { Text } from "@astryxdesign/core/Text";
-import { Report } from "./api";
+import { Report, usd } from "./api";
 import StatusMark, { Tone } from "./StatusMark";
 
 export const STATUS_LABEL: Record<string, string> = {
@@ -41,9 +41,10 @@ export default function ReportList({ reports, selected, onSelect }: {
               <StatusMark tone={r.verdict === "go" ? "good" : "bad"} strong width={68} label={r.verdict === "go" ? "GO" : "NO-GO"} />
               <span className="grow">
                 <Text weight="medium" display="block">#{r.id} {r.station} · {r.name}</Text>
-                <Text type="supporting" display="block">
-                  {r.subsystem ?? "…"} · {r.final_severity ?? "…"} · {STATUS_LABEL[r.status]}
-                </Text>
+                <span className="list-meta">
+                  <Text type="supporting">{r.subsystem ?? "…"} · {r.final_severity ?? "…"} · {STATUS_LABEL[r.status]}</Text>
+                  <span className="list-cost" data-testid="list-cost" title="Report cost">{usd(r.total_cost_usd)}</span>
+                </span>
               </span>
               <span className="list-flag" title={r.injection_flag ? "Hidden instructions detected" : undefined}>
                 {r.injection_flag && <><StatusMark tone="warn" label="" /><span className="sr-only">Hidden instructions detected</span></>}

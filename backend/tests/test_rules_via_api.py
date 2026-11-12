@@ -44,3 +44,12 @@ def test_demo_mode_shows_a_simulated_cost_at_the_real_model_price(settings, make
     for t in (t for t in r["trace"] if t["model"] != "code"):
         assert Decimal(t["cost_usd"]) == call_cost("gpt-6.1-terra", t["input_tokens"], t["output_tokens"], settings.prices)
     assert Decimal(r["total_cost_usd"]) > 0
+
+
+def test_report_list_carries_each_report_cost(make_client):
+    c = make_client(FakeModelClient())
+    ids = [c.post("/api/reports", json=GOOD).json()["id"] for _ in range(2)]
+    listed = {r["id"]: r["total_cost_usd"] for r in c.get("/api/reports").json()}
+    for rid in ids:
+        detail = c.get(f"/api/reports/{rid}").json()
+        assert Decimal(listed[rid]) == Decimal(detail["total_cost_usd"]) > 0
