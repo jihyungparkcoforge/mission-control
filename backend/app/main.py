@@ -50,6 +50,9 @@ def create_app(settings: Settings | None = None, client: ModelClient | None = No
     if client.model not in settings.prices:
         raise RuntimeError(f"No price configured for model {client.model!r}; set MODEL_PRICE_INPUT/OUTPUT")
     db = Database(settings.db_path)
+    if settings.fd_token_generated:
+        # One-time secret for this run, shown only to whoever can read the server log (the operator).
+        logging.warning("FD_TOKEN not set: generated a Flight Director token for this run: %s", settings.fd_token)
     recovered = db.recover_interrupted()
     if recovered:
         logging.warning("Marked %d interrupted report(s) as error", recovered)

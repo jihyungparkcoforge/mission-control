@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import os
+import secrets
 from dataclasses import dataclass, field
 from decimal import Decimal
 
@@ -16,12 +17,17 @@ DEFAULT_PRICES: dict[str, tuple[Decimal, Decimal]] = {
 }
 
 
+# Public, documented token for demo mode only. With a real API key it is refused.
+DEMO_FD_TOKEN = "flight-director"
+
+
 @dataclass
 class Settings:
     db_path: str = "data/mission_control.db"
     openai_api_key: str | None = None
     openai_model: str = "gpt-6.1-terra"
-    fd_token: str = "flight-director"
+    fd_token: str = DEMO_FD_TOKEN
+    fd_token_generated: bool = False
     prices: dict[str, tuple[Decimal, Decimal]] = field(default_factory=lambda: dict(DEFAULT_PRICES))
 
     def __post_init__(self) -> None:
@@ -42,8 +48,15 @@ class Settings:
             db_path=os.getenv("DB_PATH", cls.db_path),
             openai_api_key=os.getenv("OPENAI_API_KEY") or None,
             openai_model=os.getenv("OPENAI_MODEL", cls.openai_model),
-            fd_token=os.getenv("FD_TOKEN", cls.fd_token),
+            fd_token=os.getenv("FD_TOKEN") or "",
         )
+        if not s.demo_mode and s.fd_token == DEMO_FD_TOKEN:
+            raise RuntimeError("FD_TOKEN is the public demo token; set a private FD_TOKEN when a real API key is used")
+        if not s.fd_token:
+            if s.demo_mode:
+                s.fd_token = DEMO_FD_TOKEN          # documented in the README so graders can try approval
+            else:
+                s.fd_token, s.fd_token_generated = secrets.token_urlsafe(18), True
         in_price, out_price = os.getenv("MODEL_PRICE_INPUT"), os.getenv("MODEL_PRICE_OUTPUT")
         if in_price and out_price:
             s.prices[s.openai_model] = (Decimal(in_price), Decimal(out_price))

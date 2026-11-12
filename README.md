@@ -16,8 +16,11 @@ Open http://localhost:8000. If port 8000 is taken, run `PORT=8088 docker compose
 - With a real key: put `OPENAI_API_KEY=sk-...` in a `.env` file at the repo root (git-ignored) and run the same
   command. Default model is `gpt-6.1-terra`; override with `OPENAI_MODEL` (and `MODEL_PRICE_INPUT` /
   `MODEL_PRICE_OUTPUT`, USD per 1M tokens, if the model is not in `backend/app/config.py`).
-- Flight Director token: `flight-director` by default (override with `FD_TOKEN`). Enter it in the
-  **Flight Director decision** section of a report, then click **Unlock**, to approve, reject, regenerate, or re-run.
+- Flight Director token (needed to approve, reject, regenerate or re-run; enter it in a report's
+  **Flight Director decision** section and click **Unlock**):
+  - **Demo mode:** the public demo token `flight-director`, so the approval flow can be tried.
+  - **With a real API key:** set a private `FD_TOKEN` in `.env`. If it is unset, the app generates a one-time token
+    and prints it in the server log (`docker compose logs app | grep "FD token"`). The public demo token is refused.
 
 ## Test
 

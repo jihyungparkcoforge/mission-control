@@ -86,3 +86,44 @@ async def test_fake_demo_flags_vague_notes():
 async def test_fake_rejects_unknown_step():
     with pytest.raises(ValueError):
         await FakeModelClient().complete(step="mystery", system="", user="", schema={}, schema_name="x")
+
+
+def _env(monkeypatch, **values):
+    for k in ("OPENAI_API_KEY", "FD_TOKEN", "OPENAI_MODEL", "MODEL_PRICE_INPUT", "MODEL_PRICE_OUTPUT"):
+        monkeypatch.delenv(k, raising=False)
+    for k, v in values.items():
+        monkeypatch.setenv(k, v)
+
+
+def test_demo_mode_uses_the_documented_demo_token(monkeypatch):
+    _env(monkeypatch)
+    s = Settings.from_env()
+    assert s.demo_mode and s.fd_token == "flight-director" and not s.fd_token_generated
+
+
+def test_real_mode_without_fd_token_generates_a_private_one(monkeypatch):
+    _env(monkeypatch, OPENAI_API_KEY="sk-test-not-real")
+    a, b = Settings.from_env(), Settings.from_env()
+    assert a.fd_token_generated and len(a.fd_token) >= 20
+    assert a.fd_token != "flight-director" and a.fd_token != b.fd_token
+
+
+def test_real_mode_refuses_the_public_demo_token(monkeypatch):
+    _env(monkeypatch, OPENAI_API_KEY="sk-test-not-real", FD_TOKEN="flight-director")
+    with pytest.raises(RuntimeError, match="public demo token"):
+        Settings.from_env()
+
+
+def test_real_mode_with_a_private_token_uses_it(monkeypatch):
+    _env(monkeypatch, OPENAI_API_KEY="sk-test-not-real", FD_TOKEN="s3cret-fd")
+    s = Settings.from_env()
+    assert s.fd_token == "s3cret-fd" and not s.fd_token_generated
+
+
+def test_generated_token_is_logged_once_for_the_operator(monkeypatch, tmp_path, caplog):
+    from app.main import create_app
+    _env(monkeypatch, OPENAI_API_KEY="sk-test-not-real", DB_PATH=str(tmp_path / "x.db"))
+    s = Settings.from_env()
+    with caplog.at_level("WARNING"):
+        create_app(s, FakeModelClient())
+    assert any(s.fd_token in r.getMessage() for r in caplog.records)
