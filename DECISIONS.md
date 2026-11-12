@@ -156,6 +156,10 @@ looks wrong or blocks implementation, stop and ask; then update this file and `p
 - **Demo-mode cost**: the fake model is priced at the configured model's rates, labelled "simulated", so a grader
   without a key still sees cost computed in code (never $0).
 - **Strict readings**: JSON numbers only, finite (NaN/Infinity → "finite number"; "12"/true → "valid number").
+- **Note fence**: `<note>`/`</note>` inside the engineer's text are escaped before prompting, so a note cannot close
+  the untrusted-data fence early. The demo fake's briefing opens with the code verdict, like the real prompt asks.
+- **Cost on the default view** (owner, 2026-11-12): each report-list row shows its cost in a small muted column; the
+  Trace tab keeps the per-step breakdown. Validation errors use the form labels and appear under each input.
 - **FD token**: the public `flight-director` token works only in demo mode. With a real key, an unset `FD_TOKEN` is
   replaced by a per-run generated token logged once for the operator, and the public token is refused at startup.
 

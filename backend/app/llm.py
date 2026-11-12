@@ -141,7 +141,14 @@ def _demo_reply(kind: str, user: str) -> dict:
         # Never echo instruction-like sentences into the briefing.
         sentences = [s.strip() for s in re.split(r"(?<=[.!?])\s+", note) if s.strip()]
         facts = [s for s in sentences if not detect_instructions(s)]
-        summary = f"Engineer reports: {' '.join(facts[:2])[:300]}" if facts else "Engineer report contains no usable facts."
+        # like the real prompt asks: open with the code-computed verdict and violations, in plain words
+        verdict = re.search(r"CODE-COMPUTED VERDICT: (\w+)", user)
+        violations = re.search(r"CODE-COMPUTED LIMIT VIOLATIONS: (.*)", user)
+        head = "NO-GO" if verdict and verdict.group(1) == "NO_GO" else "GO"
+        viol = violations.group(1).strip() if violations else "none"
+        head += f": {viol}." if viol != "none" else ": no limit violations."
+        body = f"Engineer reports: {' '.join(facts[:2])[:300]}" if facts else "Engineer report contains no usable facts."
+        summary = f"{head} {body}"
         if "Injection flag: True" in user:
             summary += " The note also contained instruction-like text, which was ignored."
         return {"summary": summary, "recommended_actions": ["Confirm reading with the reporting station"]}
