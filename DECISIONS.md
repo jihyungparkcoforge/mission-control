@@ -1,4 +1,4 @@
-# CLAUDE.md — Mission Control (Go/No-Go Launch Console)
+# Decisions — Mission Control (Go/No-Go Launch Console)
 
 Full-stack app: engineers file anomaly reports, a pipeline classifies and checks them, a model drafts a
 briefing that a second model call reviews, and only a human Flight Director (FD) approves it.
@@ -88,7 +88,7 @@ looks wrong or blocks implementation, stop and ask; then update this file and `p
 - Review loop stops at 3; feedback reaches next draft; approval rejected without token or from wrong status.
 - Cost math exact; reports persist across an app restart on the same DB file.
 
-## Implementation decisions (made by Claude during the build — owner to confirm)
+## Implementation decisions (made during the build)
 - **Draft or review call error → halt** (`status=error`), same as a check error, for the same reason:
   no unverified briefing. (The owner only decided this explicitly for the three checks.)
 - **Briefing header is rendered by code**, not by the model: the verdict, station, subsystem, and severity
