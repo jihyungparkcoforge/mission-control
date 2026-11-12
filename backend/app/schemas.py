@@ -15,9 +15,10 @@ class ReportIn(BaseModel):
 
     name: str = Field(min_length=1, max_length=100)
     station: str = Field(min_length=1, max_length=100)
-    wind_knots: float = Field(ge=0, le=200, description="0-200 kn is physically possible")
-    temp_c: float = Field(ge=-80, le=80, description="-80..80 C is physically possible")
-    fuel_pct: float = Field(ge=0, le=120, description="0-120% sensor range")
+    # strict: real JSON numbers only (no "12" strings, no booleans); NaN/Infinity rejected as "not finite"
+    wind_knots: float = Field(ge=0, le=200, strict=True, allow_inf_nan=False, description="0-200 kn is physically possible")
+    temp_c: float = Field(ge=-80, le=80, strict=True, allow_inf_nan=False, description="-80..80 C is physically possible")
+    fuel_pct: float = Field(ge=0, le=120, strict=True, allow_inf_nan=False, description="0-120% sensor range")
     note: str = Field(min_length=1, max_length=4000)
 
     @field_validator("name", "station", "note", mode="before")
