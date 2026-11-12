@@ -55,6 +55,7 @@ def test_settings_from_env(monkeypatch):
     s = Settings.from_env()
     assert (s.db_path, s.openai_api_key, s.openai_model, s.fd_token) == ("/tmp/x.db", "sk-abc", "my-model", "secret")
     assert s.prices["my-model"] == (Decimal("2.5"), Decimal("10"))
+    assert s.prices["fake-model"] == (Decimal("2.5"), Decimal("10"))   # demo cost follows the configured model
     assert s.demo_mode is False
 
 

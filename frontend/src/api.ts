@@ -3,7 +3,7 @@ export type Status = "processing" | "pending_approval" | "review_failed" | "erro
 
 export interface Limit { label: string; unit: string; min: number | null; max: number | null }
 export type Limits = Record<"wind_knots" | "temp_c" | "fuel_pct", Limit>;
-export interface AppConfig { demo_mode: boolean; model: string; limits: Limits }
+export interface AppConfig { demo_mode: boolean; model: string; limits: Limits; cost_basis?: string }
 
 export interface Violation { field: string; value: number; limit: string; message: string }
 export interface CheckResult { flagged: boolean; findings: string[] }

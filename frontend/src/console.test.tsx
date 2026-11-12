@@ -42,7 +42,8 @@ describe("FileReportForm", () => {
 
 describe("ReportDetail", () => {
   it("renders one trace card per step with its tokens", async () => {
-    render(<ReportDetail r={REPORT} token="" onChange={vi.fn()} />);
+    render(<ReportDetail r={REPORT} token="" onChange={vi.fn()}
+      costBasis="simulated at gpt-6.1-terra prices (demo mode, no real API calls)" />);
     expect(screen.queryByTestId("trace-card")).not.toBeInTheDocument();   // trace lives in its own tab
     await userEvent.setup().click(screen.getByRole("tab", { name: /Trace/ }));
     const cards = screen.getAllByTestId("trace-card");
@@ -53,6 +54,7 @@ describe("ReportDetail", () => {
     expect(within(cards[0]).getByText("plain code")).toBeInTheDocument();
     expect(within(cards[6]).getByText("Invalid model reply")).toBeInTheDocument();
     expect(screen.getByTestId("report-cost")).toHaveTextContent("$0.0120");
+    expect(screen.getByTestId("cost-basis")).toHaveTextContent("simulated at gpt-6.1-terra prices");
   });
 
   it("shows the code verdict and the hidden-instruction warning", () => {

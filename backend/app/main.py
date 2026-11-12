@@ -13,7 +13,7 @@ from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 from fastapi.staticfiles import StaticFiles
 
-from .config import Settings
+from .config import FAKE_MODEL, Settings
 from .cost import total_cost
 from .db import Database
 from .limits import LIMITS, evaluate
@@ -45,6 +45,8 @@ def create_app(settings: Settings | None = None, client: ModelClient | None = No
     if client is None:
         client = (FakeModelClient() if settings.demo_mode
                   else OpenAIClient(settings.openai_api_key, settings.openai_model))
+    cost_basis = (f"simulated at {settings.openai_model} prices (demo mode, no real API calls)" if client.model == FAKE_MODEL
+                  else f"{client.model} per-token prices")
     if client.model not in settings.prices:
         raise RuntimeError(f"No price configured for model {client.model!r}; set MODEL_PRICE_INPUT/OUTPUT")
     db = Database(settings.db_path)
@@ -77,7 +79,7 @@ def create_app(settings: Settings | None = None, client: ModelClient | None = No
 
     @app.get("/api/config")
     def config():
-        return {"demo_mode": settings.demo_mode, "model": client.model, "limits": LIMITS}
+        return {"demo_mode": settings.demo_mode, "model": client.model, "limits": LIMITS, "cost_basis": cost_basis}
 
     @app.post("/api/reports", status_code=201)
     def file_report(body: ReportIn, background: BackgroundTasks):
