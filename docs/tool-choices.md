@@ -35,7 +35,8 @@ Each choice lists a specific reason, one rejected alternative, and one customer 
   review replies, which our code then validates. Terra is a mid-tier model: on real reports (valve delay, wind and
   temperature violation, fuel violation with a hidden instruction) it classified correctly, caught every hidden
   instruction, and wrote briefings with no invented facts, at **$0.0040–0.0049 per report (~15 s)**.
-- **Rejected alternative:** `gpt-6-astra` (the flagship). We ran the same three reports on both. Astra was a
+- **Rejected alternative:** `gpt-6-astra` (the flagship). We ran the same three reports (valve delay, wind/temperature
+  violation, hidden-instruction note) on both. Astra was a
   little more thorough — it rated the wind/temperature report `high` itself (Terra said `medium`, which code
   raises to `high` anyway because of the violations) and listed one more hidden-instruction phrase (the fake
   "SYSTEM:" label) — but every outcome the Flight Director sees was identical: same verdicts, same brief-by times,
@@ -43,7 +44,8 @@ Each choice lists a specific reason, one rejected alternative, and one customer 
   $0.0040–0.0049. That extra power is overkill for sorting and summarising a short note.
   *How these numbers were measured:* token counts come from the API's own `usage` field on each call; cost is
   those tokens × the per-token prices configured in `backend/app/config.py` (public list prices, Nov 2026).
-  Ranges are over the real reports run on each model (5 on Astra, 4 on Terra).
+  The cost ranges cover every real report run on each model: the three shared ones plus extra runs (5 reports in
+  total on Astra, 4 on Terra).
 - **Customer concern:** "Is a mid-tier model safe enough for a launch decision?" — The model never makes the
   launch decision. The GO/NO-GO verdict and brief-by time are plain code; the model only sorts and drafts. Every
   draft is checked by a second review call (up to 3 rounds), and nothing is approved until a human Flight
