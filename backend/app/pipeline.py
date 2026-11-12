@@ -14,6 +14,7 @@ from typing import TypeVar
 from pydantic import BaseModel, ValidationError
 
 from . import prompts
+from .briefing_check import verdict_problem
 from .injection import detect_instructions
 from .config import Settings
 from .cost import call_cost
@@ -159,10 +160,15 @@ class Pipeline:
             if err:
                 self.db.update_report(report_id, status=ERROR, error_message=f"Review round {rnd}: {err}")
                 return
+            # code backstop: the briefing must state the code verdict and never the opposite one
+            problem = verdict_problem(r["verdict"], draft.summary)
+            self.db.add_code_step(report_id, run, f"verdict_check_{rnd}", {"consistent": problem is None, "problem": problem})
+            passed = review.passed and problem is None
+            round_feedback = review.feedback if problem is None else f"{problem} {review.feedback}".strip()
             self.db.update_report(report_id, briefing_json=draft.model_dump_json(),
-                                  review_rounds=rnd, review_feedback=review.feedback)
-            if review.passed:
+                                  review_rounds=rnd, review_feedback=round_feedback)
+            if passed:
                 self.db.update_report(report_id, status=PENDING_APPROVAL)
                 return
-            previous, feedback = draft.model_dump(), review.feedback
+            previous, feedback = draft.model_dump(), round_feedback
         self.db.update_report(report_id, status=REVIEW_FAILED)

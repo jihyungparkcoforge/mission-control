@@ -10,6 +10,7 @@ describe("TraceCard", () => {
   it("labels draft/review rounds and unknown steps", () => {
     expect(stepLabel("draft_2")).toBe("Draft briefing — round 2");
     expect(stepLabel("review_3")).toBe("Review draft — round 3");
+    expect(stepLabel("verdict_check_2")).toBe("Verdict check (code) — round 2");
     expect(stepLabel("brief_by")).toBe("Brief-by time");
     expect(stepLabel("something_new")).toBe("something_new");
   });

@@ -16,13 +16,15 @@ const RUN1 = [
   step(8, "review_1", { output: { passed: false, feedback: "too vague" } }),
   step(9, "draft_2", { output: { summary: "second", recommended_actions: [] } }),
   step(10, "review_2", { output: { passed: true, feedback: "ok" } }),
+  step(12, "verdict_check_1", { model: "code", output: { consistent: false, problem: "x" } }),
+  step(13, "verdict_check_2", { model: "code", output: { consistent: true, problem: null } }),
 ];
 
 describe("TracePanel", () => {
   it("groups steps the way the pipeline runs", () => {
     render(<TracePanel trace={RUN1} />);
     const sections = [...document.querySelectorAll<HTMLElement>("ol.trace")].map((ol) => within(ol).getAllByTestId("trace-card").length);
-    expect(sections).toEqual([3, 4, 2, 2]);            // limits+classify+brief-by · 3 checks + code rules · round 1 · round 2
+    expect(sections).toEqual([3, 4, 3, 3]);          // rounds now include the code verdict check            // limits+classify+brief-by · 3 checks + code rules · round 1 · round 2
     expect(screen.getByText(/3 model checks ran concurrently/)).toBeInTheDocument();
     expect(screen.getByText("Instruction rules (code)")).toBeInTheDocument();
     expect(screen.getByText("Draft & review — round 2 of 3")).toBeInTheDocument();

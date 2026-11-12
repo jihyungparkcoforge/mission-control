@@ -27,13 +27,13 @@ function Run({ steps }: { steps: TraceStep[] }) {
     names.map((n) => steps.find((s) => s.step === n)).filter((s): s is TraceStep => Boolean(s));
   const rounds = [...new Set(steps.map((s) => s.step.match(/^(?:draft|review)_(\d+)$/)?.[1]).filter(Boolean))]
     .map(Number).sort((a, b) => a - b);
-  const known = new Set([...STAGE1, ...CHECKS, ...rounds.flatMap((n) => [`draft_${n}`, `review_${n}`])]);
+  const known = new Set([...STAGE1, ...CHECKS, ...rounds.flatMap((n) => [`draft_${n}`, `review_${n}`, `verdict_check_${n}`])]);
   return (
     <>
       <Section title="Limits & classification" note="limits and brief-by are plain code" steps={byName(STAGE1)} />
       <Section title="Checks" note="3 model checks ran concurrently · code rules backstop hidden instructions" steps={byName(CHECKS)} />
       {rounds.map((n) => (
-        <Section key={n} title={`Draft & review — round ${n} of 3`} steps={byName([`draft_${n}`, `review_${n}`])} />
+        <Section key={n} title={`Draft & review — round ${n} of 3`} steps={byName([`draft_${n}`, `review_${n}`, `verdict_check_${n}`])} />
       ))}
       <Section title="Other" steps={steps.filter((s) => !known.has(s.step))} />
     </>

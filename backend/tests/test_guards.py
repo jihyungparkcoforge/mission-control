@@ -43,7 +43,8 @@ def test_boundaries_through_the_api_before_and_after_the_pipeline(make_client, r
     assert filed["verdict"] == verdict                                   # set by code at filing time
     assert [v["field"] for v in filed["violations"]] == fields
     done = c.get(f"/api/reports/{filed['id']}").json()
-    assert done["status"] == "pending_approval"                          # the pipeline really ran
+    # the pipeline really ran; a GO-claiming briefing for a NO-GO report is blocked by the code verdict check
+    assert done["status"] == ("pending_approval" if verdict == "go" else "review_failed")
     assert done["verdict"] == verdict                                    # ...and changed nothing
     assert [v["field"] for v in done["violations"]] == fields
     if fields:

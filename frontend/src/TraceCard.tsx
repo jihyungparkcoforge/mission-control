@@ -19,8 +19,11 @@ const LABELS: Record<string, string> = {
 };
 
 export function stepLabel(step: string): string {
-  const m = step.match(/^(draft|review)_(\d+)$/);
-  if (m) return `${m[1] === "draft" ? "Draft briefing" : "Review draft"} — round ${m[2]}`;
+  const m = step.match(/^(draft|review|verdict_check)_(\d+)$/);
+  if (m) {
+    const name = { draft: "Draft briefing", review: "Review draft", verdict_check: "Verdict check (code)" }[m[1]];
+    return `${name} — round ${m[2]}`;
+  }
   return LABELS[step] ?? step;
 }
 
