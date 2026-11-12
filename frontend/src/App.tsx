@@ -64,7 +64,7 @@ export default function App() {
         </VStack>
         <div>
           {detail ? (
-            <ReportDetail r={detail} limits={config?.limits} token={token} onTokenChange={saveToken}
+            <ReportDetail r={detail} limits={config?.limits} costBasis={config?.cost_basis} token={token} onTokenChange={saveToken}
               onChange={(r) => { setDetail(r); refresh(); }} />
           ) : (
             <Card padding={6}>

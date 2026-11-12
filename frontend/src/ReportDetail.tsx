@@ -164,8 +164,8 @@ function FdActions({ r, token, onChange, onTokenChange }: {
   );
 }
 
-export default function ReportDetail({ r, limits, token, onChange, onTokenChange }: {
-  r: Report; limits?: Limits; token: string; onChange: (r: Report) => void; onTokenChange?: (t: string) => void;
+export default function ReportDetail({ r, limits, costBasis, token, onChange, onTokenChange }: {
+  r: Report; limits?: Limits; costBasis?: string; token: string; onChange: (r: Report) => void; onTokenChange?: (t: string) => void;
 }) {
   const [tab, setTab] = useState("briefing");
   const panelId = useId();
@@ -266,6 +266,7 @@ export default function ReportDetail({ r, limits, token, onChange, onTokenChange
               <span>{r.run_count} run{r.run_count === 1 ? "" : "s"}</span>
               <span>{steps} steps</span>
               <span>{r.trace?.filter((t) => t.model !== "code").length ?? 0} model calls</span>
+              {costBasis && <span data-testid="cost-basis">{costBasis}</span>}
             </div>
             <TracePanel trace={r.trace ?? []} />
           </VStack>
