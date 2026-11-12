@@ -66,14 +66,20 @@ export interface NewReport {
   note: string;
 }
 
-export class ApiError extends Error {}
+export interface FieldError { field: string; label?: string; message: string }
+
+export class ApiError extends Error {
+  constructor(message: string, public fieldErrors: FieldError[] = []) {
+    super(message);
+  }
+}
 
 async function call<T>(path: string, init: RequestInit = {}, fdToken?: string): Promise<T> {
   const headers: Record<string, string> = { "Content-Type": "application/json" };
   if (fdToken) headers["X-FD-Token"] = fdToken;
   const res = await fetch(path, { ...init, headers });
   const body = await res.json().catch(() => ({}));
-  if (!res.ok) throw new ApiError(body.message ?? body.detail ?? `Request failed (${res.status})`);
+  if (!res.ok) throw new ApiError(body.message ?? body.detail ?? `Request failed (${res.status})`, body.errors ?? []);
   return body as T;
 }
 

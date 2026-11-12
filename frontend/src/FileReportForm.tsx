@@ -8,7 +8,7 @@ import { NumberInput } from "@astryxdesign/core/NumberInput";
 import { TextArea } from "@astryxdesign/core/TextArea";
 import { TextInput } from "@astryxdesign/core/TextInput";
 import { VStack } from "@astryxdesign/core/VStack";
-import { api, NewReport, Report } from "./api";
+import { api, ApiError, NewReport, Report } from "./api";
 
 interface Fields {
   name: string;
@@ -23,12 +23,18 @@ const EMPTY: Fields = { name: "", station: "", wind_knots: null, temp_c: null, f
 export default function FileReportForm({ onFiled }: { onFiled: (r: Report) => void }) {
   const [f, setF] = useState<Fields>(EMPTY);
   const [error, setError] = useState<string | null>(null);
+  const [fieldErrors, setFieldErrors] = useState<Partial<Record<keyof Fields, string>>>({});
   const [busy, setBusy] = useState(false);
-  const set = <K extends keyof Fields>(k: K) => (v: Fields[K]) => setF((prev) => ({ ...prev, [k]: v }));
+  const set = <K extends keyof Fields>(k: K) => (v: Fields[K]) => {
+    setF((prev) => ({ ...prev, [k]: v }));
+    setFieldErrors((prev) => ({ ...prev, [k]: undefined }));        // clear a field's error once it is edited
+  };
+  const status = (k: keyof Fields) => (fieldErrors[k] ? { type: "error" as const, message: fieldErrors[k] } : undefined);
 
   async function submit(e: FormEvent) {
     e.preventDefault();
     setError(null);
+    setFieldErrors({});
     setBusy(true);
     try {
       // Validation is enforced by the server (empty number -> null -> 422); its message is shown verbatim.
@@ -36,7 +42,13 @@ export default function FileReportForm({ onFiled }: { onFiled: (r: Report) => vo
       setF(EMPTY);
       onFiled(r);
     } catch (err) {
-      setError((err as Error).message);
+      const fields = err instanceof ApiError ? err.fieldErrors : [];
+      if (fields.length) {
+        setFieldErrors(Object.fromEntries(fields.map((e) => [e.field, e.message])));
+        setError(`Fix ${fields.length === 1 ? "the highlighted field" : `the ${fields.length} highlighted fields`}.`);
+      } else {
+        setError((err as Error).message);
+      }
     } finally {
       setBusy(false);
     }
@@ -48,17 +60,17 @@ export default function FileReportForm({ onFiled }: { onFiled: (r: Report) => vo
         <VStack gap={3}>
           <Heading level={2}>File anomaly report</Heading>
           <HStack gap={2}>
-            <TextInput label="Name" value={f.name} onChange={set("name")} />
-            <TextInput label="Station" value={f.station} onChange={set("station")} placeholder="e.g. PROP-2" />
+            <TextInput label="Name" value={f.name} onChange={set("name")} status={status("name")} />
+            <TextInput label="Station" value={f.station} onChange={set("station")} status={status("station")} placeholder="e.g. PROP-2" />
           </HStack>
           <HStack gap={2}>
-            <NumberInput label="Wind (kn)" value={f.wind_knots} hasClear onChange={set("wind_knots")} />
-            <NumberInput label="Temp (°C)" value={f.temp_c} hasClear onChange={set("temp_c")} />
-            <NumberInput label="Fuel (%)" value={f.fuel_pct} hasClear onChange={set("fuel_pct")} />
+            <NumberInput label="Wind (kn)" value={f.wind_knots} hasClear onChange={set("wind_knots")} status={status("wind_knots")} />
+            <NumberInput label="Temp (°C)" value={f.temp_c} hasClear onChange={set("temp_c")} status={status("temp_c")} />
+            <NumberInput label="Fuel (%)" value={f.fuel_pct} hasClear onChange={set("fuel_pct")} status={status("fuel_pct")} />
           </HStack>
-          <TextArea label="Note" value={f.note} onChange={set("note")} rows={4}
+          <TextArea label="Note" value={f.note} onChange={set("note")} rows={4} status={status("note")}
             description="Limits: wind ≤ 25 kn · temp ≥ 4 °C · fuel 98–100 %" />
-          {error && <Banner status="error" title="Report rejected" description={error} role="alert" />}
+          {error && <Banner status="error" title="Report not filed" description={error} role="alert" />}
           <Button type="submit" variant="primary" label={busy ? "Filing…" : "File report"} isLoading={busy} />
         </VStack>
       </form>
