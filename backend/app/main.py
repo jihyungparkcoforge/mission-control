@@ -24,6 +24,10 @@ from .schemas import ApproveIn, RejectIn, ReportIn
 logging.basicConfig(level=logging.INFO)
 
 
+# Demo mode only: a short per-call delay so the fake behaves like a real API in time, and the trace visibly
+# shows the three checks overlapping (instant replies would finish one after another inside the gather).
+DEMO_STEP_DELAY_S = 0.15
+
 # Labels match the form so an error names the field the engineer actually sees.
 FIELD_LABELS = {"name": "Name", "station": "Station", "wind_knots": "Wind (kn)", "temp_c": "Temp (°C)",
                 "fuel_pct": "Fuel (%)", "note": "Note", "approver": "Flight Director name"}
@@ -74,7 +78,7 @@ def _serialize(r: dict, trace: list[dict] | None = None) -> dict:
 def create_app(settings: Settings | None = None, client: ModelClient | None = None) -> FastAPI:
     settings = settings or Settings.from_env()
     if client is None:
-        client = (FakeModelClient() if settings.demo_mode
+        client = (FakeModelClient(delay=DEMO_STEP_DELAY_S) if settings.demo_mode
                   else OpenAIClient(settings.openai_api_key, settings.openai_model))
     cost_basis = (f"simulated at {settings.openai_model} prices (demo mode, no real API calls)" if client.model == FAKE_MODEL
                   else f"{client.model} per-token prices")
