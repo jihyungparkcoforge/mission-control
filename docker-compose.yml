@@ -1,0 +1,20 @@
+services:
+  app:
+    build: { context: ., target: app }
+    ports: ["${PORT:-8000}:8000"]
+    environment:
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-}        # empty -> DEMO MODE (fake model)
+      OPENAI_MODEL: ${OPENAI_MODEL:-gpt-6.1-terra}
+      FD_TOKEN: ${FD_TOKEN:-flight-director}
+    volumes:
+      - mc-data:/data                             # SQLite file survives restarts
+
+  test:
+    profiles: ["test"]                            # not started by `docker compose up`
+    build: { context: ., target: test }
+    network_mode: none                            # proves tests need no network and no API key
+    environment:
+      OPENAI_API_KEY: ""
+
+volumes:
+  mc-data:
