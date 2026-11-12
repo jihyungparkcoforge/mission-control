@@ -89,3 +89,22 @@ def test_create_app_picks_client_from_key(tmp_path):
     assert demo.state.pipeline.client.model == "fake-model"
     real = create_app(Settings(db_path=str(tmp_path / "b.db"), openai_api_key="sk-test-not-real"))
     assert isinstance(real.state.pipeline.client, OpenAIClient)
+
+
+@pytest.mark.parametrize("raw,expected", [
+    ('NaN', "finite number"), ('Infinity', "finite number"), ('-Infinity', "finite number"),
+    ('"12"', "valid number"), ('true', "valid number"), ('null', "valid number"),
+])
+def test_non_finite_or_non_numeric_readings_get_a_precise_message(make_client, raw, expected):
+    import json as _json
+    body = _json.dumps({**GOOD, "wind_knots": 0}).replace('"wind_knots": 0', f'"wind_knots": {raw}')
+    res = make_client().post("/api/reports", content=body, headers={"Content-Type": "application/json"})
+    assert res.status_code == 422
+    err = res.json()["errors"][0]
+    assert err["field"] == "wind_knots" and expected in err["message"]
+    assert "less than or equal" not in res.json()["message"]
+
+
+def test_integer_readings_are_still_accepted(make_client):
+    res = make_client().post("/api/reports", json={**GOOD, "wind_knots": 25, "temp_c": 4, "fuel_pct": 100})
+    assert res.status_code == 201 and res.json()["verdict"] == "go"
