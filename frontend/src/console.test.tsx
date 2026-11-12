@@ -74,3 +74,20 @@ describe("ReportDetail", () => {
     expect(approve).not.toHaveAttribute("aria-disabled");
   });
 });
+
+describe("FileReportForm field errors", () => {
+  it("shows each server error under its own input, then clears it on edit", async () => {
+    mockFetch(422, { message: "Report not filed: Wind (kn) must be a number; Name must not be blank",
+      errors: [{ field: "wind_knots", label: "Wind (kn)", message: "Wind (kn) must be a number" },
+               { field: "name", label: "Name", message: "Name must not be blank" }] });
+    render(<FileReportForm onFiled={vi.fn()} />);
+    const u = userEvent.setup();
+    await u.click(screen.getByRole("button", { name: "File report" }));
+    expect(await findAlertWith("Fix the 2 highlighted fields.")).toBeInTheDocument();
+    expect(screen.getByText("Wind (kn) must be a number")).toBeInTheDocument();
+    expect(screen.getByText("Name must not be blank")).toBeInTheDocument();
+    await u.type(screen.getByLabelText("Name"), "Ana");
+    expect(screen.queryByText("Name must not be blank")).not.toBeInTheDocument();
+    expect(screen.getByText("Wind (kn) must be a number")).toBeInTheDocument();
+  });
+});

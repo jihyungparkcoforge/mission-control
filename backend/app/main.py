@@ -24,6 +24,37 @@ from .schemas import ApproveIn, RejectIn, ReportIn
 logging.basicConfig(level=logging.INFO)
 
 
+# Labels match the form so an error names the field the engineer actually sees.
+FIELD_LABELS = {"name": "Name", "station": "Station", "wind_knots": "Wind (kn)", "temp_c": "Temp (°C)",
+                "fuel_pct": "Fuel (%)", "note": "Note", "approver": "Flight Director name"}
+
+
+def _num(v) -> str:
+    return str(int(v)) if isinstance(v, float) and v.is_integer() else str(v)
+
+
+def _friendly(e: dict) -> str:
+    """Plain-English reason for one Pydantic error (falls back to Pydantic's own text)."""
+    t, ctx = e.get("type", ""), e.get("ctx") or {}
+    if t == "missing":
+        return "is required"
+    if t == "string_too_short" or (t == "value_error" and "blank" in e.get("msg", "")):
+        return "must not be blank"
+    if t == "finite_number":
+        return "must be a finite number (not NaN or Infinity)"
+    if t in ("float_type", "float_parsing", "int_type", "int_parsing"):
+        return "must be a number"
+    if t == "less_than_equal":
+        return f"must be {_num(ctx.get('le'))} or less"
+    if t == "greater_than_equal":
+        return f"must be {_num(ctx.get('ge'))} or more"
+    if t == "string_too_long":
+        return f"must be at most {ctx.get('max_length')} characters"
+    if t == "extra_forbidden":
+        return "is not a field of a report"
+    return e.get("msg", "is invalid")
+
+
 def _serialize(r: dict, trace: list[dict] | None = None) -> dict:
     out = {k: v for k, v in r.items() if not k.endswith("_json")}
     out["violations"] = json.loads(r["violations_json"])
@@ -63,10 +94,13 @@ def create_app(settings: Settings | None = None, client: ModelClient | None = No
 
     @app.exception_handler(RequestValidationError)
     async def _validation(_: Request, exc: RequestValidationError):
-        errors = [{"field": ".".join(str(p) for p in e["loc"] if p != "body") or "body",
-                   "message": e["msg"]} for e in exc.errors()]
-        summary = "; ".join(f"{e['field']}: {e['message']}" for e in errors)
-        return JSONResponse(status_code=422, content={"message": f"Invalid input - {summary}", "errors": errors})
+        errors = []
+        for e in exc.errors():
+            field = ".".join(str(p) for p in e["loc"] if p != "body") or "body"
+            label = FIELD_LABELS.get(field, field)
+            errors.append({"field": field, "label": label, "message": f"{label} {_friendly(e)}"})
+        summary = "; ".join(e["message"] for e in errors)
+        return JSONResponse(status_code=422, content={"message": f"Report not filed: {summary}", "errors": errors})
 
     def require_fd(x_fd_token: str | None = Header(default=None)) -> None:
         if not x_fd_token:

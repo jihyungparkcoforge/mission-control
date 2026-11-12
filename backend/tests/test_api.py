@@ -23,7 +23,9 @@ def test_missing_field_rejected_with_message(make_client, field):
     body = {k: v for k, v in GOOD.items() if k != field}
     res = make_client().post("/api/reports", json=body)
     assert res.status_code == 422
-    assert field in res.json()["message"]
+    err = res.json()["errors"][0]
+    assert err["field"] == field and err["message"].endswith("is required")
+    assert err["label"] in res.json()["message"]
 
 
 @pytest.mark.parametrize("field,value", [
@@ -34,8 +36,9 @@ def test_missing_field_rejected_with_message(make_client, field):
 def test_impossible_values_rejected(make_client, field, value):
     res = make_client().post("/api/reports", json={**GOOD, field: value})
     assert res.status_code == 422
-    assert field in res.json()["message"]
-    assert res.json()["errors"][0]["field"] == field
+    err = res.json()["errors"][0]
+    assert err["field"] == field and err["message"].startswith(err["label"])
+    assert "Input should" not in err["message"]                      # no raw Pydantic wording
 
 
 @pytest.mark.parametrize("field,value", [("wind_knots", 40), ("fuel_pct", 100.1), ("temp_c", -10)])
@@ -118,7 +121,7 @@ def test_create_app_picks_client_from_key(tmp_path):
 
 @pytest.mark.parametrize("raw,expected", [
     ('NaN', "finite number"), ('Infinity', "finite number"), ('-Infinity', "finite number"),
-    ('"12"', "valid number"), ('true', "valid number"), ('null', "valid number"),
+    ('"12"', "must be a number"), ('true', "must be a number"), ('null', "must be a number"),
 ])
 def test_non_finite_or_non_numeric_readings_get_a_precise_message(make_client, raw, expected):
     import json as _json
@@ -133,3 +136,16 @@ def test_non_finite_or_non_numeric_readings_get_a_precise_message(make_client, r
 def test_integer_readings_are_still_accepted(make_client):
     res = make_client().post("/api/reports", json={**GOOD, "wind_knots": 25, "temp_c": 4, "fuel_pct": 100})
     assert res.status_code == 201 and res.json()["verdict"] == "go"
+
+
+@pytest.mark.parametrize("field,value,text", [
+    ("wind_knots", 201, "Wind (kn) must be 200 or less"),
+    ("temp_c", -81, "Temp (°C) must be -80 or more"),
+    ("fuel_pct", "abc", "Fuel (%) must be a number"),
+    ("name", "  ", "Name must not be blank"),
+])
+def test_rejection_messages_use_form_labels_and_plain_english(make_client, field, value, text):
+    res = make_client().post("/api/reports", json={**GOOD, field: value})
+    assert res.status_code == 422
+    assert res.json()["errors"][0]["message"] == text
+    assert res.json()["message"] == f"Report not filed: {text}"
