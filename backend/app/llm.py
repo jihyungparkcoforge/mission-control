@@ -108,8 +108,7 @@ _SUBSYSTEM_KEYWORDS = [
     ("ground_support", ("pad", "tower", "umbilical", "crane", "ground", "hvac", "gse")),
     ("structures", ("crack", "frame", "fairing", "bolt", "structure", "vibration")),
 ]
-_INJECTION = re.compile(r"ignore (all |any )?(previous|prior|above)|system prompt|you are now|"
-                        r"set (the )?verdict|mark (it |this )?(as )?go|disregard|override", re.I)
+from .injection import detect_instructions  # noqa: E402  (demo heuristics reuse the code rules)
 
 
 def _note(user: str) -> str:
@@ -126,8 +125,8 @@ def _demo_reply(kind: str, user: str) -> dict:
                     else "medium" if re.search(r"odd|intermittent|drop|anomal|spike|slow", low) else "low")
         return {"subsystem": subsystem, "severity": severity, "rationale": "Demo keyword heuristic."}
     if kind == "check_injection":
-        hit = _INJECTION.search(note)
-        return {"flagged": bool(hit), "findings": [f"Instruction-like text: '{hit.group(0)}'"] if hit else []}
+        hits = detect_instructions(note)
+        return {"flagged": bool(hits), "findings": hits}
     if kind == "check_missing":
         missing = []
         if not re.search(r"\d", note):
@@ -141,7 +140,7 @@ def _demo_reply(kind: str, user: str) -> dict:
     if kind == "draft":
         # Never echo instruction-like sentences into the briefing.
         sentences = [s.strip() for s in re.split(r"(?<=[.!?])\s+", note) if s.strip()]
-        facts = [s for s in sentences if not _INJECTION.search(s)]
+        facts = [s for s in sentences if not detect_instructions(s)]
         summary = f"Engineer reports: {' '.join(facts[:2])[:300]}" if facts else "Engineer report contains no usable facts."
         if "Injection flag: True" in user:
             summary += " The note also contained instruction-like text, which was ignored."

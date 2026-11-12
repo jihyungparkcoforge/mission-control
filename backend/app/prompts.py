@@ -75,7 +75,7 @@ def context_block(r: dict, classification: dict, checks: dict) -> str:
              f"CODE-COMPUTED VERDICT: {r['verdict'].upper()}",
              f"CODE-COMPUTED LIMIT VIOLATIONS: {viol}",
              f"Subsystem: {classification.get('subsystem')}  Severity: {r['final_severity']}",
-             f"Injection flag: {checks['check_injection']['flagged']}"]
+             f"Injection flag: {checks['check_injection']['flagged'] or checks.get('injection_rules', {}).get('flagged', False)}"]
     for name, label in (("check_missing", "Missing details"), ("check_tone", "Panic tone")):
         c = checks[name]
         lines.append(f"{label}: {c['flagged']} {'- ' + '; '.join(c['findings']) if c['findings'] else ''}")

@@ -14,6 +14,7 @@ from typing import TypeVar
 from pydantic import BaseModel, ValidationError
 
 from . import prompts
+from .injection import detect_instructions
 from .config import Settings
 from .cost import call_cost
 from .db import Database
@@ -107,7 +108,11 @@ class Pipeline:
                 "Briefing withheld: the report could not be fully verified. " + " | ".join(failed)))
             return
         checks = {name: res.model_dump() for name, (res, _) in zip(CHECK_STEPS, results)}
-        injection = checks["check_injection"]["flagged"]
+        # code backstop: blatant instruction patterns are flagged even if the model missed them
+        rule_hits = detect_instructions(r["note"])
+        checks["injection_rules"] = {"flagged": bool(rule_hits), "findings": rule_hits}
+        self.db.add_code_step(report_id, run, "injection_rules", checks["injection_rules"])
+        injection = checks["check_injection"]["flagged"] or bool(rule_hits)
         self.db.update_report(report_id, checks_json=json.dumps(checks),
                               injection_flag=int(injection), needs_review=int(injection))
 
