@@ -35,6 +35,7 @@ def test_demo_heuristic_also_flags_the_note(make_client):
     rid = c.post("/api/reports", json={**GOOD, "note": INJECTION_NOTE}).json()["id"]
     r = c.get(f"/api/reports/{rid}").json()
     assert r["injection_flag"] is True and r["verdict"] == "go"  # readings are in limits -> still code GO
+    assert r["needs_review"] is True and r["status"] == "pending_approval"
 
 
 def test_approval_requires_acknowledging_injection(make_client):
