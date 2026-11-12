@@ -7,7 +7,7 @@ import TraceCard from "./TraceCard";
  * checks, then each draft/review round on its own row. Latest run first; earlier runs folded.
  */
 const STAGE1 = ["limits_check", "classify", "brief_by"];
-const CHECKS = ["check_injection", "injection_rules", "check_missing", "check_tone"];
+const CHECKS = ["check_injection", "injection_rules", "check_missing", "check_tone", "brief_by_raised"];
 
 function Section({ title, note, steps }: { title: string; note?: string; steps: TraceStep[] }) {
   if (!steps.length) return null;

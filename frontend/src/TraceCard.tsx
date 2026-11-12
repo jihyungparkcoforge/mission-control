@@ -10,6 +10,7 @@ import StepOutput from "./StepOutput";
 const LABELS: Record<string, string> = {
   limits_check: "Launch limits",
   brief_by: "Brief-by time",
+  brief_by_raised: "Brief-by raised (code)",
   classify: "Classification",
   check_injection: "Hidden instructions",
   injection_rules: "Instruction rules (code)",

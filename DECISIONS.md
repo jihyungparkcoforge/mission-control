@@ -158,6 +158,10 @@ looks wrong or blocks implementation, stop and ask; then update this file and `p
 - **Demo-mode cost**: the fake model is priced at the configured model's rates, labelled "simulated", so a grader
   without a key still sees cost computed in code (never $0).
 - **Strict readings**: JSON numbers only, finite (NaN/Infinity → "finite number"; "12"/true → "valid number").
+- **Hidden instructions raise severity** (owner, 2026-11-12): if the injection flag is set (model or code rules),
+  the final severity becomes high / 5 min, decided in code after the checks and recorded as a `brief_by_raised`
+  trace step; the model's own severity is kept. Beyond the brief's rule (violation → high), chosen because a
+  manipulated note deserves the earliest Flight Director attention.
 - **Note fence**: `<note>`/`</note>` inside the engineer's text are escaped before prompting, so a note cannot close
   the untrusted-data fence early. The demo fake's briefing opens with the code verdict, like the real prompt asks.
 - **Cost on the default view** (owner, 2026-11-12): each report-list row shows its cost in a small muted column; the

@@ -148,3 +148,11 @@ describe("hidden-instruction banner", () => {
     expect(screen.getByText('request to conceal: "do not mention"')).toBeInTheDocument();
   });
 });
+
+describe("severity raised by hidden instructions", () => {
+  it("says why the severity was raised", () => {
+    renderAt({ ...CLEAN, injection_flag: true, needs_review: true, model_severity: "low", final_severity: "high",
+               brief_by_minutes: 5, violations: [] });
+    expect(screen.getByText(/raised by hidden instructions/)).toBeInTheDocument();
+  });
+});

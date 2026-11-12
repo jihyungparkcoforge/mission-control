@@ -33,12 +33,13 @@ function LimitsOutput({ o }: { o: Obj }) {
 }
 
 function BriefByOutput({ o }: { o: Obj }) {
-  const raised = o.has_violation && o.model_severity !== "high";
+  const raised = (o.has_violation || o.injection_flagged) && o.model_severity !== "high";
+  const why = o.injection_flagged ? "hidden instructions" : "violation";
   return (
     <MetadataList columns={2}>
       <MetadataListItem label="Model severity"><Text>{(o.model_severity as string) ?? "— (fallback)"}</Text></MetadataListItem>
       <MetadataListItem label="Final severity">
-        <Text weight="semibold">{o.final_severity as string}{raised ? " · raised by violation" : ""}</Text>
+        <Text weight="semibold">{o.final_severity as string}{raised ? ` · raised by ${why}` : ""}</Text>
       </MetadataListItem>
       <MetadataListItem label="Brief within"><Text weight="semibold">{o.brief_by_minutes as number} min</Text></MetadataListItem>
     </MetadataList>
@@ -101,7 +102,8 @@ export default function StepOutput({ step }: { step: TraceStep }) {
   const kind = step.step.replace(/_\d+$/, "");
   switch (kind) {
     case "limits_check": return <LimitsOutput o={out} />;
-    case "brief_by": return <BriefByOutput o={out} />;
+    case "brief_by":
+    case "brief_by_raised": return <BriefByOutput o={out} />;
     case "classify": return <ClassifyOutput o={out} />;
     case "check_injection":
     case "injection_rules":

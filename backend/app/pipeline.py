@@ -116,6 +116,15 @@ class Pipeline:
         self.db.update_report(report_id, checks_json=json.dumps(checks),
                               injection_flag=int(injection), needs_review=int(injection))
 
+        # hidden instructions raise the briefing to high / 5 min (code, after the checks have run)
+        if injection and final_sev != "high":
+            raised_sev, raised_min = brief_by_minutes(model_sev, bool(violations), injection_flagged=True)
+            self.db.update_report(report_id, final_severity=raised_sev, brief_by_minutes=raised_min)
+            self.db.add_code_step(report_id, run, "brief_by_raised", {
+                "model_severity": model_sev, "has_violation": bool(violations), "injection_flagged": True,
+                "final_severity": raised_sev, "brief_by_minutes": raised_min,
+                "previous_final_severity": final_sev, "previous_brief_by_minutes": minutes})
+
         # 4) draft / review loop
         await self._draft_loop(report_id, run)
 
