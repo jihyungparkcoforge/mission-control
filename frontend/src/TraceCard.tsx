@@ -12,6 +12,7 @@ const LABELS: Record<string, string> = {
   brief_by: "Brief-by time",
   classify: "Classification",
   check_injection: "Hidden instructions",
+  injection_rules: "Instruction rules (code)",
   check_missing: "Missing details",
   check_tone: "Panic tone",
 };

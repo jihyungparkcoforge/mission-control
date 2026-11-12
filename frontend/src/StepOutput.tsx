@@ -104,6 +104,7 @@ export default function StepOutput({ step }: { step: TraceStep }) {
     case "brief_by": return <BriefByOutput o={out} />;
     case "classify": return <ClassifyOutput o={out} />;
     case "check_injection":
+    case "injection_rules":
     case "check_missing":
     case "check_tone": return <CheckOutput o={out} />;
     case "draft": return <DraftOutput o={out} />;

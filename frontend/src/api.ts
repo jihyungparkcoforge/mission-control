@@ -42,7 +42,7 @@ export interface Report {
   brief_by_at: number | null;
   classification_error: string | null;
   classification: { subsystem: string; severity?: string; rationale?: string } | null;
-  checks: Record<"check_injection" | "check_missing" | "check_tone", CheckResult> | null;
+  checks: (Record<"check_injection" | "check_missing" | "check_tone", CheckResult> & { injection_rules?: CheckResult }) | null;
   injection_flag: boolean;
   needs_review: boolean;
   error_message: string | null;

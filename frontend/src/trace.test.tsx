@@ -11,6 +11,7 @@ const RUN1 = [
   step(4, "check_injection", { output: { flagged: false, findings: [] } }),
   step(5, "check_missing", { output: { flagged: false, findings: [] } }),
   step(6, "check_tone", { output: { flagged: false, findings: [] } }),
+  step(11, "injection_rules", { model: "code", output: { flagged: true, findings: ['override of prior instructions: "ignore all previous instructions"'] } }),
   step(7, "draft_1", { output: { summary: "first", recommended_actions: [] } }),
   step(8, "review_1", { output: { passed: false, feedback: "too vague" } }),
   step(9, "draft_2", { output: { summary: "second", recommended_actions: [] } }),
@@ -20,9 +21,10 @@ const RUN1 = [
 describe("TracePanel", () => {
   it("groups steps the way the pipeline runs", () => {
     render(<TracePanel trace={RUN1} />);
-    const sections = screen.getAllByRole("list").map((ol) => within(ol).getAllByTestId("trace-card").length);
-    expect(sections).toEqual([3, 3, 2, 2]);            // limits+classify+brief-by · 3 checks · round 1 · round 2
-    expect(screen.getByText("ran concurrently")).toBeInTheDocument();
+    const sections = [...document.querySelectorAll<HTMLElement>("ol.trace")].map((ol) => within(ol).getAllByTestId("trace-card").length);
+    expect(sections).toEqual([3, 4, 2, 2]);            // limits+classify+brief-by · 3 checks + code rules · round 1 · round 2
+    expect(screen.getByText(/3 model checks ran concurrently/)).toBeInTheDocument();
+    expect(screen.getByText("Instruction rules (code)")).toBeInTheDocument();
     expect(screen.getByText("Draft & review — round 2 of 3")).toBeInTheDocument();
   });
 
