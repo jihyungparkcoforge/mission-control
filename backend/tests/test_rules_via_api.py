@@ -30,3 +30,17 @@ def test_report_cost_equals_sum_of_trace_steps(settings, make_client):
         assert Decimal(t["cost_usd"]) == call_cost("fake-model", t["input_tokens"], t["output_tokens"], settings.prices)
     assert Decimal(r["total_cost_usd"]) == sum(Decimal(t["cost_usd"]) for t in r["trace"])
     assert Decimal(r["total_cost_usd"]) > 0
+
+
+def test_demo_mode_shows_a_simulated_cost_at_the_real_model_price(settings, make_client):
+    """A grader without an API key must still see cost computed in code, not $0."""
+    c = make_client(FakeModelClient())
+    cfg = c.get("/api/config").json()
+    assert cfg["demo_mode"] is True and "simulated at gpt-6.1-terra prices" in cfg["cost_basis"]
+    rid = c.post("/api/reports", json=GOOD).json()["id"]
+    r = c.get(f"/api/reports/{rid}").json()
+    terra = settings.prices["gpt-6.1-terra"]
+    assert settings.prices["fake-model"] == terra
+    for t in (t for t in r["trace"] if t["model"] != "code"):
+        assert Decimal(t["cost_usd"]) == call_cost("gpt-6.1-terra", t["input_tokens"], t["output_tokens"], settings.prices)
+    assert Decimal(r["total_cost_usd"]) > 0
