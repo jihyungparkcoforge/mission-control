@@ -60,6 +60,31 @@ def test_reports_survive_restart(settings):
         assert [x["id"] for x in c2.get("/api/reports").json()] == [rid]
 
 
+def test_reports_survive_a_real_process_restart(settings):
+    """File a report in this process, then read it back from a brand-new Python process on the same DB file."""
+    import json
+    import subprocess
+    import sys
+    from pathlib import Path
+
+    with TestClient(create_app(settings, FakeModelClient())) as c:
+        rid = c.post("/api/reports", json=GOOD).json()["id"]
+    code = (
+        "import json, sys\n"
+        "from fastapi.testclient import TestClient\n"
+        "from app.config import Settings\n"
+        "from app.llm import FakeModelClient\n"
+        "from app.main import create_app\n"
+        f"c = TestClient(create_app(Settings(db_path={settings.db_path!r}), FakeModelClient()))\n"
+        f"print(json.dumps(c.get('/api/reports/{rid}').json()))\n"
+    )
+    out = subprocess.run([sys.executable, "-c", code], cwd=Path(__file__).resolve().parents[1],
+                         capture_output=True, text=True, timeout=60, check=True).stdout
+    r = json.loads(out.strip().splitlines()[-1])
+    assert r["id"] == rid and r["name"] == GOOD["name"] and r["note"] == GOOD["note"]
+    assert r["verdict"] == "go" and r["status"] == "pending_approval" and r["trace"]
+
+
 def test_restart_marks_interrupted_runs_as_error(settings):
     from app.db import Database
     db = Database(settings.db_path)
