@@ -93,6 +93,14 @@ class Database:
         with self.conn() as c:
             return [dict(r) for r in c.execute("SELECT * FROM reports ORDER BY id DESC")]
 
+    def step_costs(self) -> dict[int, list[str]]:
+        """Every trace step's cost string, grouped by report (summed in code with Decimal, not in SQL floats)."""
+        out: dict[int, list[str]] = {}
+        with self.conn() as c:
+            for row in c.execute("SELECT report_id, cost_usd FROM trace_steps"):
+                out.setdefault(row["report_id"], []).append(row["cost_usd"])
+        return out
+
     def recover_interrupted(self) -> int:
         with self.conn() as c:
             cur = c.execute("UPDATE reports SET status='error', error_message=? WHERE status='processing'",

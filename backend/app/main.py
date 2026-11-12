@@ -99,7 +99,8 @@ def create_app(settings: Settings | None = None, client: ModelClient | None = No
 
     @app.get("/api/reports")
     def list_reports():
-        return [_serialize(r) for r in db.list_reports()]
+        costs = db.step_costs()
+        return [{**_serialize(r), "total_cost_usd": str(total_cost(costs.get(r["id"], [])))} for r in db.list_reports()]
 
     @app.get("/api/reports/{report_id}")
     def get_report(report_id: int):

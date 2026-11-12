@@ -28,6 +28,8 @@ describe("App", () => {
     expect(screen.getAllByText(/Select a report/).length).toBeGreaterThan(0);
     expect(await screen.findByText(/#7 PROP-2/)).toBeInTheDocument();
     expect(screen.getByText(/Model: fake-model/)).toBeInTheDocument();
+    // cost is visible on the default view: every list row shows its report cost
+    expect(screen.getAllByTestId("list-cost").map((e) => e.textContent)).toEqual(["$0.0120", "$0.0120"]);
 
     await userEvent.setup().click(screen.getByText(/#7 PROP-2/));
     expect(await screen.findByRole("tab", { name: "Briefing" })).toBeInTheDocument();
