@@ -22,7 +22,10 @@ Each choice lists a specific reason, one rejected alternative, and one customer 
 ## Database — SQLite
 - **Reason:** The whole record — reports, verdicts, trace steps, costs, and who approved what — is one file.
   Copying that file after the launch preserves a complete audit trail.
-- **Rejected alternative:** Plain JSON files — risk of corruption on concurrent writes and no transactions.
+- **Rejected alternative:** PostgreSQL. It is the stronger general-purpose database, but here it would add a
+  second server container, credentials, a connection pool and migrations for a handful of consoles filing a few
+  reports an hour. SQLite in WAL mode with compare-and-set status updates already gives transactions and safe
+  concurrent approvals; if the console grows to many sites, the store is one module (`db.py`) to port.
 - **Customer concern:** "Where is our data stored, and does it leave the site?" — In a local SQLite file on a
   Docker volume. The only data sent out is the report note and readings, to the model API; the verdict
   is computed locally and does not depend on that call.
@@ -31,13 +34,16 @@ Each choice lists a specific reason, one rejected alternative, and one customer 
 - **Reason:** Structured Outputs (strict JSON schema) forces the shape of the classification, check, draft and
   review replies, which our code then validates. Terra is a mid-tier model: on real reports (valve delay, wind and
   temperature violation, fuel violation with a hidden instruction) it classified correctly, caught every hidden
-  instruction, and wrote briefings with no invented facts, at about $0.005 per report and ~15 s.
+  instruction, and wrote briefings with no invented facts, at **$0.0040–0.0049 per report (~15 s)**.
 - **Rejected alternative:** `gpt-6-astra` (the flagship). We ran the same three reports on both. Astra was a
   little more thorough — it rated the wind/temperature report `high` itself (Terra said `medium`, which code
   raises to `high` anyway because of the violations) and listed one more hidden-instruction phrase (the fake
   "SYSTEM:" label) — but every outcome the Flight Director sees was identical: same verdicts, same brief-by times,
-  same injection flags, accurate briefings. Astra cost about 8× more per report (~$0.037 vs ~$0.0045). That
-  extra power is overkill for sorting and summarising a short note.
+  same injection flags, accurate briefings. Astra cost about 8× more: **$0.034–0.045 per report** vs Terra's
+  $0.0040–0.0049. That extra power is overkill for sorting and summarising a short note.
+  *How these numbers were measured:* token counts come from the API's own `usage` field on each call; cost is
+  those tokens × the per-token prices configured in `backend/app/config.py` (public list prices, Nov 2026).
+  Ranges are over the real reports run on each model (5 on Astra, 4 on Terra).
 - **Customer concern:** "Is a mid-tier model safe enough for a launch decision?" — The model never makes the
   launch decision. The GO/NO-GO verdict and brief-by time are plain code; the model only sorts and drafts. Every
   draft is checked by a second review call (up to 3 rounds), and nothing is approved until a human Flight
