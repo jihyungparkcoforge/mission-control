@@ -40,8 +40,10 @@ def _num(v) -> str:
 def _friendly(e: dict) -> str:
     """Plain-English reason for one Pydantic error (falls back to Pydantic's own text)."""
     t, ctx = e.get("type", ""), e.get("ctx") or {}
-    if t == "missing":
+    if t == "missing" or ("input" in e and e["input"] is None):   # absent or null (an empty form field)
         return "is required"
+    if t == "string_type":
+        return "must be text"
     if t == "string_too_short" or (t == "value_error" and "blank" in e.get("msg", "")):
         return "must not be blank"
     if t == "finite_number":
@@ -100,6 +102,9 @@ def create_app(settings: Settings | None = None, client: ModelClient | None = No
     async def _validation(_: Request, exc: RequestValidationError):
         errors = []
         for e in exc.errors():
+            if e.get("type") == "json_invalid":
+                errors.append({"field": "body", "label": "Request body", "message": "Request body is not valid JSON"})
+                continue
             field = ".".join(str(p) for p in e["loc"] if p != "body") or "body"
             label = FIELD_LABELS.get(field, field)
             errors.append({"field": field, "label": label, "message": f"{label} {_friendly(e)}"})

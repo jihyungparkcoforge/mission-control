@@ -121,7 +121,7 @@ def test_create_app_picks_client_from_key(tmp_path):
 
 @pytest.mark.parametrize("raw,expected", [
     ('NaN', "finite number"), ('Infinity', "finite number"), ('-Infinity', "finite number"),
-    ('"12"', "must be a number"), ('true', "must be a number"), ('null', "must be a number"),
+    ('"12"', "must be a number"), ('true', "must be a number"), ('null', "is required"),
 ])
 def test_non_finite_or_non_numeric_readings_get_a_precise_message(make_client, raw, expected):
     import json as _json
@@ -149,3 +149,21 @@ def test_rejection_messages_use_form_labels_and_plain_english(make_client, field
     assert res.status_code == 422
     assert res.json()["errors"][0]["message"] == text
     assert res.json()["message"] == f"Report not filed: {text}"
+
+
+@pytest.mark.parametrize("field", ["name", "station", "wind_knots", "temp_c", "fuel_pct", "note"])
+def test_null_field_reads_as_required(make_client, field):
+    res = make_client().post("/api/reports", json={**GOOD, field: None})
+    assert res.status_code == 422
+    err = res.json()["errors"][0]
+    assert err["field"] == field and err["message"] == f"{err['label']} is required"
+
+
+def test_wrong_type_text_field_and_invalid_json_messages(make_client):
+    c = make_client()
+    err = c.post("/api/reports", json={**GOOD, "name": 42}).json()["errors"][0]
+    assert err["message"] == "Name must be text"
+    res = c.post("/api/reports", content="{not json", headers={"Content-Type": "application/json"})
+    assert res.status_code == 422
+    assert res.json()["errors"] == [{"field": "body", "label": "Request body", "message": "Request body is not valid JSON"}]
+    assert res.json()["message"] == "Report not filed: Request body is not valid JSON"
