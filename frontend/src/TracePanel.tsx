@@ -7,7 +7,7 @@ import TraceCard from "./TraceCard";
  * checks, then each draft/review round on its own row. Latest run first; earlier runs folded.
  */
 const STAGE1 = ["limits_check", "classify", "brief_by"];
-const CHECKS = ["check_injection", "check_missing", "check_tone"];
+const CHECKS = ["check_injection", "injection_rules", "check_missing", "check_tone"];
 
 function Section({ title, note, steps }: { title: string; note?: string; steps: TraceStep[] }) {
   if (!steps.length) return null;
@@ -31,7 +31,7 @@ function Run({ steps }: { steps: TraceStep[] }) {
   return (
     <>
       <Section title="Limits & classification" note="limits and brief-by are plain code" steps={byName(STAGE1)} />
-      <Section title="Checks" note="ran concurrently" steps={byName(CHECKS)} />
+      <Section title="Checks" note="3 model checks ran concurrently · code rules backstop hidden instructions" steps={byName(CHECKS)} />
       {rounds.map((n) => (
         <Section key={n} title={`Draft & review — round ${n} of 3`} steps={byName([`draft_${n}`, `review_${n}`])} />
       ))}

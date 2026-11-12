@@ -138,3 +138,13 @@ describe("Flight Director actions", () => {
     expect(JSON.parse(fetchSpy.mock.calls[0][1]!.body as string).acknowledge_injection).toBe(true);
   });
 });
+
+describe("hidden-instruction banner", () => {
+  it("lists findings from both the model check and the code rules", () => {
+    const r = { ...REPORT, checks: { ...REPORT.checks!, check_injection: { flagged: false, findings: [] },
+      injection_rules: { flagged: true, findings: ['request to conceal: "do not mention"'] } } };
+    renderAt(r);
+    expect(screen.getByText(/Hidden instructions detected/)).toBeInTheDocument();
+    expect(screen.getByText('request to conceal: "do not mention"')).toBeInTheDocument();
+  });
+});

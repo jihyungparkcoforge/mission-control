@@ -202,7 +202,8 @@ export default function ReportDetail({ r, limits, token, onChange, onTokenChange
       {r.error_message && <Banner status="error" title="Pipeline stopped" description={r.error_message} role="alert" />}
       {r.injection_flag && (
         <Banner status="warning" title="Hidden instructions detected — ignored, verdict unaffected. FD review required."
-          description={<ul className="plain-list">{r.checks?.check_injection.findings.map((f, i) => <li key={i}>{f}</li>)}</ul>} />
+          description={<ul className="plain-list">{[...(r.checks?.check_injection.findings ?? []), ...(r.checks?.injection_rules?.findings ?? [])]
+            .map((f, i) => <li key={i}>{f}</li>)}</ul>} />
       )}
 
       <TabList value={tab} onChange={setTab} hasDivider role="tablist" aria-label="Report sections">
