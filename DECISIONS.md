@@ -16,7 +16,7 @@ looks wrong or blocks implementation, stop and ask; then update this file and `p
 - DB: SQLite file in a Docker volume.
 - Model: OpenAI **`gpt-6.1-terra` for every step** (owner, 2026-11-12: `gpt-6-astra` was overkill), Structured
   Outputs (strict JSON schema). Model id + per-1M-token prices in `backend/app/config.py`, overridable by `OPENAI_MODEL`.
-- Start: `docker compose up`. Test: `docker compose run --rm test` (no network, no API key).
+- Start: `docker compose up --build`. Test: `docker compose run --rm --build test` (no network, no API key).
 
 ## Hard rules (non-negotiable)
 1. **Verdict is code only.** `backend/app/limits.py` is a pure function of the three readings. It never
@@ -102,7 +102,7 @@ looks wrong or blocks implementation, stop and ask; then update this file and `p
   (superseded the earlier $0 pricing), and each fake call takes 0.15 s so the trace shows the checks overlapping.
 - Default model `gpt-6.1-terra` at $1 / $5 per 1M tokens (third-party price trackers, Nov 2026; `gpt-6-astra` $10 / $50
   kept in the price table for `OPENAI_MODEL` overrides). Confirm on OpenAI's pricing page before production use.
-- Host port is configurable: `PORT=8088 docker compose up` (8000 was busy on the dev machine).
+- Host port is configurable: `PORT=8088 docker compose up --build` (8000 was busy on the dev machine).
 - Uvicorn uses the app factory: `uvicorn app.main:create_app --factory`.
 
 - Astryx renders an always-present empty `role="alert"` live region and disables buttons with `aria-disabled`;
@@ -157,15 +157,15 @@ looks wrong or blocks implementation, stop and ask; then update this file and `p
   `injection_rules` trace step; the flag is model OR rules. Tuned not to flag ordinary engineering prose.
 - **Demo-mode cost**: the fake model is priced at the configured model's rates, labelled "simulated", so a grader
   without a key still sees cost computed in code (never $0).
-- **Strict readings**: JSON numbers only, finite (NaN/Infinity → "finite number"; "12"/true → "valid number").
 - **Hidden instructions raise severity** (owner, 2026-11-12): if the injection flag is set (model or code rules),
   the final severity becomes high / 5 min, decided in code after the checks and recorded as a `brief_by_raised`
   trace step; the model's own severity is kept. Beyond the brief's rule (violation → high), chosen because a
   manipulated note deserves the earliest Flight Director attention.
-
 - **Briefing verdict check** (code, `backend/app/briefing_check.py`): every draft/review round also runs a code
   check that the summary states the code verdict and never the opposite one. A contradiction fails the round even if
   the reviewer model passed it, and the reason goes into the next draft's feedback; recorded as `verdict_check_N`.
+- **Strict readings**: JSON numbers only, finite (NaN/Infinity → "must be a finite number"; "12"/true → "must be a
+  number"; null/empty → "is required").
 - **Note fence**: `<note>`/`</note>` inside the engineer's text are escaped before prompting, so a note cannot close
   the untrusted-data fence early. The demo fake's briefing opens with the code verdict, like the real prompt asks.
 - **Cost on the default view** (owner, 2026-11-12): each report-list row shows its cost in a small muted column; the
