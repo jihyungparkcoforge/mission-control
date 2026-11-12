@@ -23,7 +23,7 @@ looks wrong or blocks implementation, stop and ask; then update this file and `p
    imports or reads model output. Verdict + violations are computed and stored *before* any model call.
 2. **Limits are inclusive:** `wind_knots <= 25`, `temp_c >= 4`, `98 <= fuel_pct <= 100`. Any violation → `no_go`.
 3. **Brief-by is code only:** high 5 / medium 15 / low 30 minutes from `final_severity`; any limit
-   violation forces `final_severity = high`. Store both `model_severity` and `final_severity`.
+   violation forces `final_severity = high`, and so does a hidden-instruction flag (owner decision). Store both `model_severity` and `final_severity`.
 4. **All model calls go through one `ModelClient` interface** (`backend/app/llm.py`) with
    `OpenAIClient` and `FakeModelClient`. Tests use only the fake. No test may need network or a key.
 5. **Only a human approves.** Only the approve endpoint sets `approved`; the pipeline has no code path
