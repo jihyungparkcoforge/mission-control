@@ -31,14 +31,33 @@ class ReportIn(BaseModel):
         return v
 
 
+def _not_blank(v):
+    if isinstance(v, str):
+        v = v.strip()
+        if not v:
+            raise ValueError("must not be blank")
+    return v
+
+
 class ApproveIn(BaseModel):
     approver: str = Field(min_length=1, max_length=100)
     acknowledge_injection: bool = False
+
+    @field_validator("approver", mode="before")
+    @classmethod
+    def _approver(cls, v):
+        # a person must be named: whitespace-only names are rejected, names are stored trimmed
+        return _not_blank(v)
 
 
 class RejectIn(BaseModel):
     approver: str = Field(min_length=1, max_length=100)
     reason: str = Field(default="", max_length=1000)
+
+    @field_validator("approver", mode="before")
+    @classmethod
+    def _approver(cls, v):
+        return _not_blank(v)
 
 
 # ---- model reply schemas (validated in code after every call) ----

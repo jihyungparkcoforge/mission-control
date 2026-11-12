@@ -156,3 +156,13 @@ describe("severity raised by hidden instructions", () => {
     expect(screen.getByText(/raised by hidden instructions/)).toBeInTheDocument();
   });
 });
+
+describe("approver name", () => {
+  it("keeps approve and reject disabled for a whitespace-only name", async () => {
+    renderAt(CLEAN, "fd");
+    const u = userEvent.setup();
+    await u.type(screen.getByLabelText("Flight Director name"), "   ");
+    expect(screen.getByRole("button", { name: "Approve briefing" })).toHaveAttribute("aria-disabled", "true");
+    expect(screen.getByRole("button", { name: "Reject" })).toHaveAttribute("aria-disabled", "true");
+  });
+});
