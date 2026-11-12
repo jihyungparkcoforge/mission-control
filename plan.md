@@ -11,7 +11,7 @@ the user via Q&A and must be recorded verbatim in the repo so they can explain i
 parent repo (Life Simulator). → `git init` a **separate** repo in `mission-control/`; never touch the parent.
 
 ## Deliverables written first (after approval)
-1. `CLAUDE.md` — project rules + the full **Decision Log** below (English).
+1. `DECISIONS.md` — project rules + the full **Decision Log** below (English).
 2. `plan.md` — this implementation plan (English).
 3. `docs/tool-choices.md` — rubric item 2 (reason / rejected alternative / customer concern ×4).
 
@@ -78,7 +78,7 @@ verify the current OpenAI flagship id + pricing at implementation time.
 
 ```
 mission-control/
-  CLAUDE.md  plan.md  README.md  docker-compose.yml  docs/tool-choices.md
+  DECISIONS.md  plan.md  README.md  docker-compose.yml  docs/tool-choices.md
   backend/  pyproject.toml  Dockerfile
     app/
       main.py         FastAPI routes, startup recovery, static serving

@@ -53,5 +53,5 @@ backend/tests/ test_limits · test_timing · test_classify · test_injection · 
                test_approval · test_cost · test_api (incl. restart test)
 frontend/src/  App · FileReportForm · ReportList · ReportDetail · TraceCard · console.test.tsx
 docs/tool-choices.md   tool choices (reason / rejected alternative / customer concern)
-CLAUDE.md · plan.md    decision log and implementation plan
+DECISIONS.md · plan.md decision log and implementation plan
 ```
