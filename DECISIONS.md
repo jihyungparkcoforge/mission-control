@@ -146,6 +146,19 @@ looks wrong or blocks implementation, stop and ask; then update this file and `p
   verdicts, brief-by and injection flags; Terra rated one violating weather report `medium` (code raises it) and
   listed 3 of Astra's 4 injection phrases. ~15 s and ~$0.0045 per report (about 1/8 of Astra).
 
+## Review fixes (2026-11-12, after an independent rubric review)
+- **Behavioural guards instead of source scans** (`backend/tests/test_guards.py`): a spy on every pipeline DB
+  write proves the pipeline never writes `verdict`/`violations_json` and never sets approved/rejected; all 8 limit
+  boundaries go through the API; an injected note with a GO-pushing model matches a clean control. Concurrency is
+  proven with a 3-party barrier (no timing); persistence also from a new Python process.
+- **Hidden-instruction code backstop** (`backend/app/injection.py`): plain-code rules for blatant patterns run as an
+  `injection_rules` trace step; the flag is model OR rules. Tuned not to flag ordinary engineering prose.
+- **Demo-mode cost**: the fake model is priced at the configured model's rates, labelled "simulated", so a grader
+  without a key still sees cost computed in code (never $0).
+- **Strict readings**: JSON numbers only, finite (NaN/Infinity → "finite number"; "12"/true → "valid number").
+- **FD token**: the public `flight-director` token works only in demo mode. With a real key, an unset `FD_TOKEN` is
+  replaced by a per-run generated token logged once for the operator, and the public token is refused at startup.
+
 ## Commands
 - App: `docker compose up --build` · Tests: `docker compose run --rm --build test`
 - Local: `cd backend && uv run pytest` · `cd frontend && npx vitest run` · `sh scripts/run-tests.sh`

@@ -33,6 +33,18 @@ Every model call goes through `ModelClient` (`backend/app/llm.py`), and tests us
 Locally, without Docker: `sh scripts/run-tests.sh` (after `uv sync` in `backend/` and `npm ci` in `frontend/`).
 Coverage: `cd backend && uv run pytest --cov` (line + branch) · `cd frontend && npx vitest run --coverage`.
 
+### Manual restart check
+Automated: `test_reports_survive_restart` and `test_reports_survive_a_real_process_restart` (a new Python
+process reads the same SQLite file). To see it with the container:
+
+```bash
+docker compose up -d --build
+curl -s -X POST localhost:8000/api/reports -H 'Content-Type: application/json' \
+  -d '{"name":"Ana","station":"PROP-2","wind_knots":12,"temp_c":15,"fuel_pct":99,"note":"Valve V-12 slow to close."}'
+docker compose restart app
+curl -s localhost:8000/api/reports | head -c 300   # the report is still there (volume mc-data)
+```
+
 ## How it works
 
 | Question | Answer |
@@ -42,10 +54,10 @@ Coverage: `cd backend && uv run pytest --cov` (line + branch) · `cd frontend &&
 | Where is brief-by computed? | `backend/app/timing.py`: high 5 / medium 15 / low 30 min; any violation means high. |
 | How many model calls? | 1 classify + 3 concurrent checks + 1–3 rounds of (draft + review). That is 6 to 10 per run. |
 | What if a model call fails? | **Classify:** red error card, safe default `unclassified` + `high` (5 min), pipeline continues. **Any check, draft, or review:** pipeline stops with `status=error` and no briefing (an unverified briefing could look verified). The code verdict is always shown. FD can re-run. |
-| Hidden instructions in the note? | Flagged by the injection check, marked `needs_review`, and shown as a warning. The FD must acknowledge before approving. The verdict can't change because no model output reaches `limits.py`. |
+| Hidden instructions in the note? | Flagged by the model check **or** by plain-code rules (`backend/app/injection.py`) as a backstop, marked `needs_review`, and shown as a warning. The FD must acknowledge before approving. The verdict can't change: it is computed before any model call and the pipeline never writes it (`backend/tests/test_guards.py` watches every DB write). |
 | Review loop? | At most 3 rounds, and reviewer feedback is added to the next draft prompt. If all 3 fail the status is `review_failed`, which can't be approved; the FD can regenerate. |
 | Who can approve? | Only `POST /api/reports/{id}/approve` with a valid `X-FD-Token` and approver name, from `pending_approval`. The pipeline has no code path to `approved`. |
-| Cost? | `backend/app/cost.py`: tokens × price per step (Decimal). The report total is the sum of its trace cards. |
+| Cost? | `backend/app/cost.py`: tokens × price per step (Decimal). The report total is the sum of its trace cards, shown in the Trace tab. In demo mode the fake model's tokens are priced at the configured model's rates and labelled "simulated". |
 
 ## Layout
 
