@@ -149,11 +149,11 @@ function FdActions({ r, token, onChange, onTokenChange }: {
       )}
       <HStack gap={2} wrap="wrap">
         {canApprove && (
-          <Button variant="primary" width={FD_BUTTON_W} label="Approve briefing" isDisabled={!approver || (r.injection_flag && !ack)}
+          <Button variant="primary" width={FD_BUTTON_W} label="Approve briefing" isDisabled={!approver.trim() || (r.injection_flag && !ack)}
             onClick={() => act(() => api.approve(r.id, token, approver, ack))} />
         )}
         {canReject && (
-          <Button variant="destructive" width={FD_BUTTON_W} label="Reject" isDisabled={!approver}
+          <Button variant="destructive" width={FD_BUTTON_W} label="Reject" isDisabled={!approver.trim()}
             onClick={() => act(() => api.reject(r.id, token, approver, reason))} />
         )}
         {canRegenerate && <Button width={FD_BUTTON_W} label="Regenerate briefing" onClick={() => act(() => api.regenerate(r.id, token))} />}

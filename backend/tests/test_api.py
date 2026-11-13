@@ -167,3 +167,13 @@ def test_wrong_type_text_field_and_invalid_json_messages(make_client):
     assert res.status_code == 422
     assert res.json()["errors"] == [{"field": "body", "label": "Request body", "message": "Request body is not valid JSON"}]
     assert res.json()["message"] == "Report not filed: Request body is not valid JSON"
+
+
+@pytest.mark.parametrize("content,ctype", [("[]", "application/json"), ('"text"', "application/json"),
+                                            ("name=x", "text/plain")])
+def test_non_object_body_gets_a_clear_message(make_client, content, ctype):
+    res = make_client().post("/api/reports", content=content, headers={"Content-Type": ctype})
+    assert res.status_code == 422
+    assert res.json()["errors"] == [{"field": "body", "label": "Request body",
+                                     "message": "Request body must be a JSON object"}]
+    assert res.json()["message"] == "Report not filed: Request body must be a JSON object"

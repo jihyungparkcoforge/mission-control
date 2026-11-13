@@ -33,6 +33,18 @@ FIELD_LABELS = {"name": "Name", "station": "Station", "wind_knots": "Wind (kn)",
                 "fuel_pct": "Fuel (%)", "note": "Note", "approver": "Flight Director name"}
 
 
+def _refusal(request: Request) -> str:
+    """Name what was refused, so an approval error doesn't say 'Report not filed'."""
+    path = request.url.path
+    if path.endswith("/approve"):
+        return "Approval refused"
+    if path.endswith("/reject"):
+        return "Rejection refused"
+    if path == "/api/reports" and request.method == "POST":
+        return "Report not filed"
+    return "Request refused"
+
+
 def _num(v) -> str:
     return str(int(v)) if isinstance(v, float) and v.is_integer() else str(v)
 
@@ -99,17 +111,20 @@ def create_app(settings: Settings | None = None, client: ModelClient | None = No
     app.state.db, app.state.pipeline, app.state.settings = db, pipeline, settings
 
     @app.exception_handler(RequestValidationError)
-    async def _validation(_: Request, exc: RequestValidationError):
+    async def _validation(request: Request, exc: RequestValidationError):
         errors = []
         for e in exc.errors():
             if e.get("type") == "json_invalid":
                 errors.append({"field": "body", "label": "Request body", "message": "Request body is not valid JSON"})
                 continue
+            if e.get("type") in ("model_attributes_type", "dict_type", "model_type"):
+                errors.append({"field": "body", "label": "Request body", "message": "Request body must be a JSON object"})
+                continue
             field = ".".join(str(p) for p in e["loc"] if p != "body") or "body"
             label = FIELD_LABELS.get(field, field)
             errors.append({"field": field, "label": label, "message": f"{label} {_friendly(e)}"})
         summary = "; ".join(e["message"] for e in errors)
-        return JSONResponse(status_code=422, content={"message": f"Report not filed: {summary}", "errors": errors})
+        return JSONResponse(status_code=422, content={"message": f"{_refusal(request)}: {summary}", "errors": errors})
 
     def require_fd(x_fd_token: str | None = Header(default=None)) -> None:
         if not x_fd_token:
