@@ -19,6 +19,9 @@ PATTERNS: list[tuple[str, re.Pattern[str]]] = [
         r"\b(set|mark|change|make|declare|flip)\b[^.\n]{0,30}\b(verdict|status|launch|report|decision)\b"
         r"[^.\n]{0,20}\b(go|approved?|nominal|green)\b", re.I)),
     ("attempt to approve", re.compile(r"\b(auto-?)?approve\b[^.\n]{0,25}\b(this|the)\b[^.\n]{0,15}\b(briefing|report)\b", re.I)),
+    ("attempt to approve", re.compile(r"\b(auto-?)?approve\s+(this|it|now|immediately|at once)\b", re.I)),
+    ("asserted verdict", re.compile(
+        r"\b(verdict|status|launch|decision|call)\s*(\bis\b|=|:|\bshould be\b)\s*(a\s+)?(go|approved|green)\b", re.I)),
     ("request to conceal", re.compile(r"\b(do not|don't|never)\s+(mention|report|reveal|tell|include)\b", re.I)),
     ("request to falsify readings", re.compile(
         r"\breport\b[^.\n]{0,40}\bas\b[^.\n]{0,12}(\bnominal\b|\bnormal\b|\bgo\b|\b100\s?%)", re.I)),
