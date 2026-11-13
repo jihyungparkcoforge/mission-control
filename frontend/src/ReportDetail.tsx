@@ -40,14 +40,20 @@ function Tile({ label, value, sub, tone, testId }: {
   );
 }
 
+/** "−6 min" up to an hour overdue, then "−3 h" — keeps the value short in the facts strip. */
+export function overdueText(secondsLate: number): string {
+  const min = Math.ceil(secondsLate / 60);
+  return min < 60 ? `−${min} min` : `−${Math.floor(min / 60)} h`;
+}
+
 function BriefByTile({ r }: { r: Report }) {
   const now = useNow();
   if (!r.brief_by_at) return <Tile label="Brief in" value="…" sub="pending classification" />;
-  const at = new Date(r.brief_by_at * 1000).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", second: "2-digit", hour12: false });
+  const at = new Date(r.brief_by_at * 1000).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", hour12: false });
   const sub = `due ${at} · ${r.brief_by_minutes} min`;
   if (r.status === "approved" || r.status === "rejected") return <Tile label="Brief in" value="Done" sub={sub} />;
   const left = Math.round(r.brief_by_at - now);
-  if (left < 0) return <Tile label="Brief in" value={`−${Math.ceil(-left / 60)} min`} sub={`overdue · was due ${at}`} tone="bad" />;
+  if (left < 0) return <Tile label="Brief in" value={overdueText(-left)} sub={`overdue · was due ${at}`} tone="bad" />;
   return <Tile label="Brief in" value={`${Math.floor(left / 60)}:${String(left % 60).padStart(2, "0")}`} sub={sub} />;
 }
 
@@ -175,7 +181,7 @@ export default function ReportDetail({ r, limits, costBasis, token, onChange, on
   const steps = r.trace?.length ?? 0;
   const sevSub = r.model_severity === null && r.final_severity
     ? "safe default (classification failed)"
-    : r.model_severity ? `model: ${r.model_severity}${raisedBy ? ` · raised by ${raisedBy}` : ""}` : undefined;
+    : r.model_severity ? (raisedBy ? `${r.model_severity} → high · ${raisedBy}` : `model: ${r.model_severity}`) : undefined;
   return (
     <VStack gap={3}>
       <Card padding={4} variant={go ? "green" : "red"}>
@@ -193,6 +199,9 @@ export default function ReportDetail({ r, limits, costBasis, token, onChange, on
         <BriefByTile r={r} />
         <Tile label="Severity" value={r.final_severity ?? "…"} sub={sevSub} />
         <Tile label="Subsystem" value={r.subsystem ? SUBSYSTEM_LABEL[r.subsystem] ?? r.subsystem : "…"} sub={r.station} />
+        {/* audit info, kept the narrowest and quietest cell; per-step breakdown is in the Trace tab */}
+        <Tile label="Cost" value={usd(r.total_cost_usd)} testId="facts-cost"
+          sub={costBasis?.startsWith("simulated") ? "simulated" : `${r.trace?.filter((t) => t.model !== "code").length ?? 0} calls`} />
       </div>
       <ChecksRow r={r} />
 
