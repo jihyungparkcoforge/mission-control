@@ -171,6 +171,10 @@ looks wrong or blocks implementation, stop and ask; then update this file and `p
   the schema, no part of it is trusted — a valid severity next to an invented subsystem is not kept. The report gets
   the safe default (unclassified, high / 5 min) and a red error card, consistent with "show errors, don't guess".
 - FD action bodies (approve/reject) reject unknown fields, like the report form.
+- **Demo briefing quotes measured facts only**: the fake drafter copies a note sentence only if it carries a number
+  and is not an instruction, an address to someone, or verdict/approval talk. Code rules were broadened for
+  paraphrased injections (address to an AI, role-play, sign-off, "all-clear", suppressing a warning, "treat as GO")
+  and checked against realistic engineering notes for false positives.
 - **Strict readings**: JSON numbers only, finite (NaN/Infinity → "must be a finite number"; "12"/true → "must be a
   number"; null/empty → "is required").
 - **Note fence**: `<note>`/`</note>` inside the engineer's text are escaped before prompting, so a note cannot close
