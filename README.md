@@ -51,7 +51,7 @@ curl -s localhost:8000/api/reports | head -c 300   # the report is still there (
 |---|---|
 | Where is data stored? | SQLite file `/data/mission_control.db` in the Docker volume `mc-data` (tables `reports`, `trace_steps`). |
 | Where is the verdict computed? | `backend/app/limits.py`, pure code, before any model call. Limits are inclusive: wind ≤ 25 kn, temp ≥ 4 °C, 98 ≤ fuel ≤ 100 %. |
-| Where is brief-by computed? | `backend/app/timing.py`: high 5 / medium 15 / low 30 min; any violation means high. |
+| Where is brief-by computed? | `backend/app/timing.py`: high 5 / medium 15 / low 30 min; any limit violation means high, and so do hidden instructions in the note (raised in code after the checks, shown as a "Brief-by raised" trace step). |
 | How many model calls? | 1 classify + 3 concurrent checks + 1–3 rounds of (draft + review). That is 6 to 10 per run. |
 | What if a model call fails? | **Classify:** red error card, safe default `unclassified` + `high` (5 min), pipeline continues. **Any check, draft, or review:** pipeline stops with `status=error` and no briefing (an unverified briefing could look verified). The code verdict is always shown. FD can re-run. |
 | Hidden instructions in the note? | Flagged by the model check **or** by plain-code rules (`backend/app/injection.py`) as a backstop, marked `needs_review`, and shown as a warning. The FD must acknowledge before approving. The verdict can't change: it is computed before any model call and the pipeline never writes it (`backend/tests/test_guards.py` watches every DB write). |

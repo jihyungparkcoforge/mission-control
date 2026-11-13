@@ -23,7 +23,7 @@ looks wrong or blocks implementation, stop and ask; then update this file and `p
    imports or reads model output. Verdict + violations are computed and stored *before* any model call.
 2. **Limits are inclusive:** `wind_knots <= 25`, `temp_c >= 4`, `98 <= fuel_pct <= 100`. Any violation → `no_go`.
 3. **Brief-by is code only:** high 5 / medium 15 / low 30 minutes from `final_severity`; any limit
-   violation forces `final_severity = high`. Store both `model_severity` and `final_severity`.
+   violation forces `final_severity = high`, and so does a hidden-instruction flag (owner decision). Store both `model_severity` and `final_severity`.
 4. **All model calls go through one `ModelClient` interface** (`backend/app/llm.py`) with
    `OpenAIClient` and `FakeModelClient`. Tests use only the fake. No test may need network or a key.
 5. **Only a human approves.** Only the approve endpoint sets `approved`; the pipeline has no code path
@@ -158,6 +158,10 @@ looks wrong or blocks implementation, stop and ask; then update this file and `p
 - **Demo-mode cost**: the fake model is priced at the configured model's rates, labelled "simulated", so a grader
   without a key still sees cost computed in code (never $0).
 - **Strict readings**: JSON numbers only, finite (NaN/Infinity → "finite number"; "12"/true → "valid number").
+- **Hidden instructions raise severity** (owner, 2026-11-12): if the injection flag is set (model or code rules),
+  the final severity becomes high / 5 min, decided in code after the checks and recorded as a `brief_by_raised`
+  trace step; the model's own severity is kept. Beyond the brief's rule (violation → high), chosen because a
+  manipulated note deserves the earliest Flight Director attention.
 - **Note fence**: `<note>`/`</note>` inside the engineer's text are escaped before prompting, so a note cannot close
   the untrusted-data fence early. The demo fake's briefing opens with the code verdict, like the real prompt asks.
 - **Cost on the default view** (owner, 2026-11-12): each report-list row shows its cost in a small muted column; the

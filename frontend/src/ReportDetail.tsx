@@ -170,11 +170,12 @@ export default function ReportDetail({ r, limits, costBasis, token, onChange, on
   const [tab, setTab] = useState("briefing");
   const panelId = useId();
   const go = r.verdict === "go";
-  const raised = r.violations.length > 0 && r.model_severity !== null && r.model_severity !== "high";
+  const raisedBy = r.model_severity === null || r.model_severity === "high" ? null
+    : r.violations.length > 0 ? "violation" : r.injection_flag ? "hidden instructions" : null;
   const steps = r.trace?.length ?? 0;
   const sevSub = r.model_severity === null && r.final_severity
     ? "safe default (classification failed)"
-    : r.model_severity ? `model: ${r.model_severity}${raised ? " · raised by violation" : ""}` : undefined;
+    : r.model_severity ? `model: ${r.model_severity}${raisedBy ? ` · raised by ${raisedBy}` : ""}` : undefined;
   return (
     <VStack gap={3}>
       <Card padding={4} variant={go ? "green" : "red"}>

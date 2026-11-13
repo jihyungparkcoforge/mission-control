@@ -17,3 +17,8 @@ def test_violation_forces_high(sev):
 @pytest.mark.parametrize("bad", [None, "critical", "", "LOW"])
 def test_unknown_severity_falls_back_to_high(bad):
     assert brief_by_minutes(bad, has_violation=False) == ("high", 5)
+
+
+@pytest.mark.parametrize("sev", ["high", "medium", "low", None])
+def test_hidden_instructions_force_high(sev):
+    assert brief_by_minutes(sev, has_violation=False, injection_flagged=True) == ("high", 5)
