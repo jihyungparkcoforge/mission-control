@@ -76,7 +76,7 @@ details > summary { cursor: pointer; }
 .tc-head .status-mark { justify-content: flex-end; }
 
 /* Facts strip under the verdict: one quiet row, not cards */
-.tiles { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); border-radius: 10px;
+.tiles { display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, 1.4fr) minmax(0, .9fr) minmax(0, .8fr); border-radius: 10px;
   border: 1px solid color-mix(in srgb, currentColor 12%, transparent); background: var(--color-background-card, #1a1a19); }
 @media (max-width: 900px) { .tiles { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 .tile { height: 58px; padding: 9px 16px; display: flex; flex-direction: column; justify-content: center; gap: 2px; min-width: 0;

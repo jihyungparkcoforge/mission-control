@@ -69,7 +69,7 @@ describe("ReportDetail display", () => {
 
   it("notes when a violation raised the model's severity", () => {
     renderAt(REPORT);
-    expect(screen.getByText(/raised by violation/)).toBeInTheDocument();
+    expect(screen.getByText("low → high · violation")).toBeInTheDocument();
     expect(screen.getByText("Wind 30 kn exceeds the 25 kn maximum")).toBeInTheDocument();
   });
 });
@@ -153,7 +153,7 @@ describe("severity raised by hidden instructions", () => {
   it("says why the severity was raised", () => {
     renderAt({ ...CLEAN, injection_flag: true, needs_review: true, model_severity: "low", final_severity: "high",
                brief_by_minutes: 5, violations: [] });
-    expect(screen.getByText(/raised by hidden instructions/)).toBeInTheDocument();
+    expect(screen.getByText("low → high · hidden instructions")).toBeInTheDocument();
   });
 });
 
@@ -164,5 +164,24 @@ describe("approver name", () => {
     await u.type(screen.getByLabelText("Flight Director name"), "   ");
     expect(screen.getByRole("button", { name: "Approve briefing" })).toHaveAttribute("aria-disabled", "true");
     expect(screen.getByRole("button", { name: "Reject" })).toHaveAttribute("aria-disabled", "true");
+  });
+});
+
+describe("cost in the facts strip", () => {
+  it("shows the report cost quietly on the default Briefing view", () => {
+    render(<ReportDetail r={REPORT} token="" onChange={vi.fn()} costBasis="simulated at gpt-6.1-terra prices (demo mode)" />);
+    expect(screen.getByRole("tab", { name: "Briefing", selected: true })).toBeInTheDocument();
+    expect(screen.getByTestId("facts-cost")).toHaveTextContent("$0.0120");
+    expect(screen.getByText("simulated")).toBeInTheDocument();
+  });
+});
+
+describe("overdue text", () => {
+  it("switches from minutes to hours after an hour", async () => {
+    const { overdueText } = await import("./ReportDetail");
+    expect(overdueText(61)).toBe("−2 min");
+    expect(overdueText(59 * 60)).toBe("−59 min");
+    expect(overdueText(60 * 60)).toBe("−1 h");
+    expect(overdueText(28 * 3600 + 5)).toBe("−28 h");
   });
 });

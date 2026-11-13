@@ -57,7 +57,7 @@ curl -s localhost:8000/api/reports | head -c 300   # the report is still there (
 | Hidden instructions in the note? | Flagged by the model check **or** by plain-code rules (`backend/app/injection.py`) as a backstop, marked `needs_review`, and shown as a warning. The FD must acknowledge before approving. The verdict can't change: it is computed before any model call and the pipeline never writes it (`backend/tests/test_guards.py` watches every DB write). |
 | Review loop? | At most 3 rounds, and reviewer feedback is added to the next draft prompt. If all 3 fail the status is `review_failed`, which can't be approved; the FD can regenerate. |
 | Who can approve? | Only `POST /api/reports/{id}/approve` with a valid `X-FD-Token` and approver name, from `pending_approval`. The pipeline has no code path to `approved`. |
-| Cost? | `backend/app/cost.py`: tokens × price per step (Decimal). The report total is the sum of its trace cards, shown in every report-list row and at the top of the Trace tab. In demo mode the fake model's tokens are priced at the configured model's rates and labelled "simulated". |
+| Cost? | `backend/app/cost.py`: tokens × price per step (Decimal). The report total is the sum of its trace cards, shown in every report-list row, in the report's facts strip, and at the top of the Trace tab. In demo mode the fake model's tokens are priced at the configured model's rates and labelled "simulated". |
 
 ## Layout
 

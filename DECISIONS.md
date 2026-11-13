@@ -121,11 +121,12 @@ looks wrong or blocks implementation, stop and ask; then update this file and `p
 - **Same role, same size.** Elements in the same slot must not resize with their label: pass a fixed `width`
   to `StatusMark` (list verdict 68px, trace status 78px, countdown 150px) and to sibling buttons
   (FD action buttons all `FD_BUTTON_W`).
-- **Detail layout (owner, 2026-11-12: the page was too text-heavy):** verdict hero → one quiet **facts strip** (3 cells:
-  Brief in · Severity · Subsystem; 11px label, 15px value + muted note on one line — owner: big tiles over-emphasised) → one row of 3 check marks → warning banners → tabs
+- **Detail layout (owner, 2026-11-12: the page was too text-heavy):** verdict hero → one quiet **facts strip** (4 cells:
+  Brief in · Severity · Subsystem · Cost (narrowest cell); 11px label, 15px value + muted note on one line — owner: big tiles over-emphasised) → one row of 3 check marks → warning banners → tabs
   **Briefing** (readings chart, briefing, FD decision, original note) / **Trace** (cost summary + step cards).
   **Cost is audit info, not decision info** (owner): it is kept out of the decision area and shown quietly — a
-  small muted column in every report-list row (the default view) and a summary at the top of the Trace tab. It must
+  small muted column in every report-list row (the default view), the narrowest cell of the detail facts strip
+  (owner, 2026-11-13, after a grader asked for cost on the Briefing view), and a summary at the top of the Trace tab. It must
   stay visible because the brief requires the console to show cost. **No global header bar** (owner): the page
   starts with 32px padding; the FD token is asked for inside "Flight Director decision" and only committed on
   Unlock/Enter. Prefer numbers and
