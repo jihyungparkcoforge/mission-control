@@ -52,3 +52,12 @@ def test_draft_error_halts(make_client):
     fake = FakeModelClient(responses={"draft": ConnectionError("network")})
     c, rid, r = _file(make_client, fake)
     assert r["status"] == "error" and "Draft round 1" in r["error_message"]
+
+
+def test_demo_drafter_revises_after_feedback(make_client):
+    fake = FakeModelClient(responses={"review": [FAIL("Quote less of the note"), PASS]})
+    c, rid, r = _file(make_client, fake)
+    drafts = [t["output"]["summary"] for t in r["trace"] if t["step"].startswith("draft_")]
+    assert len(drafts) == 2 and drafts[0] != drafts[1]
+    assert "Revised after review" in drafts[1] and "Revised after review" not in drafts[0]
+    assert drafts[1].startswith("GO:")                      # still states the code verdict

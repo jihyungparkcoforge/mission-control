@@ -110,6 +110,10 @@ _SUBSYSTEM_KEYWORDS = [
 ]
 from .injection import detect_instructions  # noqa: E402  (demo heuristics reuse the code rules)
 
+# demo drafter: sentences that talk about a verdict or approval are never copied into a briefing as "facts"
+_VERDICT_TALK = re.compile(r"\bno[\s_-]?go\b|\bverdict\b|\bapprov", re.I)
+_GO_WORD = re.compile(r"\bGO\b")
+
 
 def _note(user: str) -> str:
     m = re.search(r"<note>\n?(.*?)\n?</note>", user, re.S)
@@ -138,9 +142,10 @@ def _demo_reply(kind: str, user: str) -> dict:
         panic = re.search(r"!!|\b(PANIC|EMERGENCY|HELP|ASAP)\b|\b[A-Z]{5,}\b", note)
         return {"flagged": bool(panic), "findings": ["Urgent / alarmed wording"] if panic else []}
     if kind == "draft":
-        # Never echo instruction-like sentences into the briefing.
+        # Never echo instruction-like sentences, or anything that states a verdict or asks for approval, into the
+        # briefing: only the code verdict may be stated. Reviewer feedback in the prompt is honoured the same way.
         sentences = [s.strip() for s in re.split(r"(?<=[.!?])\s+", note) if s.strip()]
-        facts = [s for s in sentences if not detect_instructions(s)]
+        facts = [s for s in sentences if not (detect_instructions(s) or _VERDICT_TALK.search(s) or _GO_WORD.search(s))]
         # like the real prompt asks: open with the code-computed verdict and violations, in plain words
         verdict = re.search(r"CODE-COMPUTED VERDICT: (\w+)", user)
         violations = re.search(r"CODE-COMPUTED LIMIT VIOLATIONS: (.*)", user)
@@ -148,6 +153,10 @@ def _demo_reply(kind: str, user: str) -> dict:
         viol = violations.group(1).strip() if violations else "none"
         head += f": {viol}." if viol != "none" else ": no limit violations."
         body = f"Engineer reports: {' '.join(facts[:2])[:300]}" if facts else "Engineer report contains no usable facts."
+        if "REVIEWER FEEDBACK" in user:
+            # honour the reviewer: quote less of the note and say the draft was revised
+            body = (f"Revised after review. Engineer reports: {facts[0][:200]}" if facts
+                    else "Revised after review. Engineer report contains no usable facts.")
         summary = f"{head} {body}"
         if "Injection flag: True" in user:
             summary += " The note also contained instruction-like text, which was ignored."
