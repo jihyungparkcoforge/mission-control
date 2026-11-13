@@ -87,6 +87,15 @@ function ReviewOutput({ o }: { o: Obj }) {
   );
 }
 
+function VerdictCheckOutput({ o }: { o: Obj }) {
+  return (
+    <VStack gap={1} align="start">
+      <StatusMark tone={o.consistent ? "good" : "bad"} strong label={o.consistent ? "Matches the code verdict" : "Contradicts the code verdict"} />
+      {typeof o.problem === "string" && <Text type="supporting">{o.problem}</Text>}
+    </VStack>
+  );
+}
+
 export default function StepOutput({ step }: { step: TraceStep }) {
   const out = step.output;
   if (out == null) return null;
@@ -111,6 +120,7 @@ export default function StepOutput({ step }: { step: TraceStep }) {
     case "check_tone": return <CheckOutput o={out} />;
     case "draft": return <DraftOutput o={out} />;
     case "review": return <ReviewOutput o={out} />;
+    case "verdict_check": return <VerdictCheckOutput o={out} />;
     default:
       return (
         <MetadataList columns={1}>

@@ -82,3 +82,15 @@ describe("brief-by raised step", () => {
     expect(screen.getByText("5 min")).toBeInTheDocument();
   });
 });
+
+describe("verdict check step", () => {
+  it("shows a match or the contradiction", () => {
+    const { unmount } = render(<StepOutput step={step(1, "verdict_check_1", { model: "code", output: { consistent: true, problem: null } })} />);
+    expect(screen.getByText("Matches the code verdict")).toBeInTheDocument();
+    unmount();
+    render(<StepOutput step={step(2, "verdict_check_2", { model: "code",
+      output: { consistent: false, problem: "The briefing states GO, but the code-computed verdict is NO-GO." } })} />);
+    expect(screen.getByText("Contradicts the code verdict")).toBeInTheDocument();
+    expect(screen.getByText(/code-computed verdict is NO-GO/)).toBeInTheDocument();
+  });
+});
