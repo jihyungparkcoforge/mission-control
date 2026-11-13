@@ -42,6 +42,11 @@ function BriefByOutput({ o }: { o: Obj }) {
         <Text weight="semibold">{o.final_severity as string}{raised ? ` · raised by ${why}` : ""}</Text>
       </MetadataListItem>
       <MetadataListItem label="Brief within"><Text weight="semibold">{o.brief_by_minutes as number} min</Text></MetadataListItem>
+      {Boolean(o.injection_flagged) && (
+        <MetadataListItem label="Rule">
+          <Text type="supporting">Extra rule beyond the brief: hidden instructions raise the briefing to high</Text>
+        </MetadataListItem>
+      )}
     </MetadataList>
   );
 }

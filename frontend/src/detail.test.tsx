@@ -69,7 +69,7 @@ describe("ReportDetail display", () => {
 
   it("notes when a violation raised the model's severity", () => {
     renderAt(REPORT);
-    expect(screen.getByText("low → high · violation")).toBeInTheDocument();
+    expect(screen.getByText("from low · violation")).toBeInTheDocument();
     expect(screen.getByText("Wind 30 kn exceeds the 25 kn maximum")).toBeInTheDocument();
   });
 });
@@ -153,7 +153,7 @@ describe("severity raised by hidden instructions", () => {
   it("says why the severity was raised", () => {
     renderAt({ ...CLEAN, injection_flag: true, needs_review: true, model_severity: "low", final_severity: "high",
                brief_by_minutes: 5, violations: [] });
-    expect(screen.getByText("low → high · hidden instructions")).toBeInTheDocument();
+    expect(screen.getByText("from low · extra injection rule")).toBeInTheDocument();
   });
 });
 

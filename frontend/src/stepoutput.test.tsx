@@ -79,6 +79,7 @@ describe("brief-by raised step", () => {
     render(<StepOutput step={step(1, "brief_by_raised", { model: "code", output: {
       model_severity: "low", has_violation: false, injection_flagged: true, final_severity: "high", brief_by_minutes: 5 } })} />);
     expect(screen.getByText("high · raised by hidden instructions")).toBeInTheDocument();
+    expect(screen.getByText(/Extra rule beyond the brief/)).toBeInTheDocument();
     expect(screen.getByText("5 min")).toBeInTheDocument();
   });
 });
