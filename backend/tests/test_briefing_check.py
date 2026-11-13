@@ -16,6 +16,11 @@ from tests.conftest import GOOD
     ("go", "GO; the crew can go ahead with fuelling.", True),         # ordinary lower-case "go" is fine
     ("go", "NO-GO: valve fault.", False),
     ("go", "Valve slow to close.", False),
+    # a conditional mention of the other verdict is not a verdict statement
+    ("go", "GO: no violations. It would be NO-GO if wind rises above 25 kn.", True),
+    ("no_go", "NO-GO: wind 31 kn. It could become GO if wind drops below 25 kn.", True),
+    # ...but a conditional sentence alone does not state the verdict
+    ("go", "It would be GO if nothing changes.", False),
 ])
 def test_verdict_problem(verdict, summary, ok):
     assert (verdict_problem(verdict, summary) is None) is ok

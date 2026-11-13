@@ -67,3 +67,12 @@ def test_approver_name_is_stored_trimmed_and_errors_name_the_action(make_client)
     assert bad["message"].startswith("Rejection refused:")
     r = c.post(f"/api/reports/{rid}/approve", json={"approver": "  FD Kim  "}, headers=FD).json()
     assert r["status"] == "approved" and r["decided_by"] == "FD Kim"
+
+
+def test_unknown_fields_in_fd_actions_are_rejected(make_client):
+    c, rid = _pending(make_client)
+    res = c.post(f"/api/reports/{rid}/approve", json={"approver": "FD", "status": "approved"}, headers=FD)
+    assert res.status_code == 422 and res.json()["errors"][0]["message"] == "status is not an accepted field"
+    res = c.post(f"/api/reports/{rid}/reject", json={"approver": "FD", "verdict": "go"}, headers=FD)
+    assert res.status_code == 422
+    assert c.get(f"/api/reports/{rid}").json()["status"] == "pending_approval"

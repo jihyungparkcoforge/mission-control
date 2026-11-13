@@ -69,7 +69,7 @@ def _friendly(e: dict) -> str:
     if t == "string_too_long":
         return f"must be at most {ctx.get('max_length')} characters"
     if t == "extra_forbidden":
-        return "is not a field of a report"
+        return "is not an accepted field"
     return e.get("msg", "is invalid")
 
 
