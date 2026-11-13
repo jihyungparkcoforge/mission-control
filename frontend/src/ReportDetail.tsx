@@ -181,7 +181,8 @@ export default function ReportDetail({ r, limits, costBasis, token, onChange, on
   const steps = r.trace?.length ?? 0;
   const sevSub = r.model_severity === null && r.final_severity
     ? "safe default (classification failed)"
-    : r.model_severity ? (raisedBy ? `${r.model_severity} → high · ${raisedBy}` : `model: ${r.model_severity}`) : undefined;
+    : r.model_severity ? (raisedBy ? `from ${r.model_severity} · ${raisedBy === "violation" ? "violation" : "extra injection rule"}`
+      : `model: ${r.model_severity}`) : undefined;
   return (
     <VStack gap={3}>
       <Card padding={4} variant={go ? "green" : "red"}>

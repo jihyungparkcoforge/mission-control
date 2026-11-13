@@ -161,7 +161,8 @@ looks wrong or blocks implementation, stop and ask; then update this file and `p
 - **Hidden instructions raise severity** (owner, 2026-11-12): if the injection flag is set (model or code rules),
   the final severity becomes high / 5 min, decided in code after the checks and recorded as a `brief_by_raised`
   trace step; the model's own severity is kept. Beyond the brief's rule (violation → high), chosen because a
-  manipulated note deserves the earliest Flight Director attention.
+  manipulated note deserves the earliest Flight Director attention. The UI labels it "extra injection rule" in the severity cell and
+  "Extra rule beyond the brief" in the trace step, and the README says so explicitly.
 - **Briefing verdict check** (code, `backend/app/briefing_check.py`): every draft/review round also runs a code
   check that the summary states the code verdict and never the opposite one. A contradiction fails the round even if
   the reviewer model passed it, and the reason goes into the next draft's feedback; recorded as `verdict_check_N`.

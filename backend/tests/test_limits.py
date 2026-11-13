@@ -23,6 +23,10 @@ def test_exactly_on_each_limit_is_go(wind, temp, fuel):
 
 @pytest.mark.parametrize("wind,temp,fuel,field", [
     (25.1, 15, 99, "wind_knots"),
+    (25.0001, 15, 99, "wind_knots"),     # no tolerance band: a hair past the limit is already NO-GO
+    (10, 3.9999, 99, "temp_c"),
+    (10, 15, 97.9999, "fuel_pct"),
+    (10, 15, 100.0001, "fuel_pct"),
     (26, 15, 99, "wind_knots"),
     (10, 3.9, 99, "temp_c"),
     (10, 3, 99, "temp_c"),
