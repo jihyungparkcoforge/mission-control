@@ -64,9 +64,14 @@ curl -s localhost:8000/api/reports | head -c 300   # the report is still there (
 ```
 backend/app/   main.py (API) · limits.py · timing.py · cost.py · llm.py (ModelClient + fake)
                pipeline.py · prompts.py · schemas.py · db.py · config.py
-backend/tests/ test_limits · test_timing · test_classify · test_injection · test_review_loop
-               test_approval · test_cost · test_api (incl. restart test)
-frontend/src/  App · FileReportForm · ReportList · ReportDetail · TraceCard · console.test.tsx
+               injection.py (hidden-instruction rules) · briefing_check.py (briefing vs verdict)
+backend/tests/ test_limits · test_timing · test_cost · test_classify · test_model_client · test_pipeline
+               test_injection · test_injection_rules · test_review_loop · test_briefing_check
+               test_approval · test_robustness · test_guards · test_rules_via_api
+               test_api (incl. in-process and new-process restart tests)
+frontend/src/  App · FileReportForm · ReportList · ReportDetail · LimitGauge · TracePanel · TraceCard
+               StepOutput · StatusMark · api
+               tests: app · console · detail · gauge · trace · stepoutput · units (.test.tsx)
 docs/tool-choices.md   tool choices (reason / rejected alternative / customer concern)
 DECISIONS.md · plan.md decision log and implementation plan
 ```

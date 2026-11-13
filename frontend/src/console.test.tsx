@@ -32,11 +32,11 @@ describe("FileReportForm", () => {
     expect(onFiled).toHaveBeenCalled();
   });
 
-  it("shows the server's clear rejection message", async () => {
-    mockFetch(422, { message: "Invalid input - wind_knots: Input should be a valid number" });
+  it("shows the server's message when it has no per-field errors", async () => {
+    mockFetch(422, { message: "Report not filed: Request body must be a JSON object" });
     render(<FileReportForm onFiled={vi.fn()} />);
     await userEvent.setup().click(screen.getByRole("button", { name: "File report" }));
-    expect(await findAlertWith("wind_knots: Input should be a valid number")).toBeInTheDocument();
+    expect(await findAlertWith("Report not filed: Request body must be a JSON object")).toBeInTheDocument();
   });
 });
 
