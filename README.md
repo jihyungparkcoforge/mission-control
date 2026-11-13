@@ -13,6 +13,10 @@ docker compose up --build
 Open http://localhost:8000. If port 8000 is taken, run `PORT=8088 docker compose up --build`.
 
 - Without `OPENAI_API_KEY`, the app runs in **DEMO MODE** with a deterministic fake model, shown in a yellow banner.
+  In demo mode the "model" checks are keyword heuristics (the same plain-code rules as `backend/app/injection.py`),
+  so cleverly paraphrased hidden instructions may only be caught by the real model. Either way the demo briefing
+  quotes only measured facts from the note (sentences with a number, no instructions or verdict talk), so an
+  unrecognised instruction is never passed on to the Flight Director, and the verdict is always plain code.
 - With a real key: put `OPENAI_API_KEY=sk-...` in a `.env` file at the repo root (git-ignored) and run the same
   command. Default model is `gpt-6.1-terra`; override with `OPENAI_MODEL` (and `MODEL_PRICE_INPUT` /
   `MODEL_PRICE_OUTPUT`, USD per 1M tokens, if the model is not in `backend/app/config.py`).
