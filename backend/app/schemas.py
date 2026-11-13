@@ -40,6 +40,7 @@ def _not_blank(v):
 
 
 class ApproveIn(BaseModel):
+    model_config = ConfigDict(extra="forbid")
     approver: str = Field(min_length=1, max_length=100)
     acknowledge_injection: bool = False
 
@@ -51,6 +52,7 @@ class ApproveIn(BaseModel):
 
 
 class RejectIn(BaseModel):
+    model_config = ConfigDict(extra="forbid")
     approver: str = Field(min_length=1, max_length=100)
     reason: str = Field(default="", max_length=1000)
 

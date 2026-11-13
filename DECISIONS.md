@@ -164,6 +164,11 @@ looks wrong or blocks implementation, stop and ask; then update this file and `p
 - **Briefing verdict check** (code, `backend/app/briefing_check.py`): every draft/review round also runs a code
   check that the summary states the code verdict and never the opposite one. A contradiction fails the round even if
   the reviewer model passed it, and the reason goes into the next draft's feedback; recorded as `verdict_check_N`.
+  Conditional sentences ("would be NO-GO if wind rises") are not read as a verdict statement.
+- **Partly valid classification is discarded whole** (intentional): if any field of the classification reply breaks
+  the schema, no part of it is trusted — a valid severity next to an invented subsystem is not kept. The report gets
+  the safe default (unclassified, high / 5 min) and a red error card, consistent with "show errors, don't guess".
+- FD action bodies (approve/reject) reject unknown fields, like the report form.
 - **Strict readings**: JSON numbers only, finite (NaN/Infinity → "must be a finite number"; "12"/true → "must be a
   number"; null/empty → "is required").
 - **Note fence**: `<note>`/`</note>` inside the engineer's text are escaped before prompting, so a note cannot close
